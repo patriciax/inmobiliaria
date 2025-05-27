@@ -1,0 +1,25 @@
+/*
+ * Finder | Directory & Listings Bootstrap Template
+ * Copyright 2024 SRBThemes
+ * Theme styles
+ */
+ @import '@vueform/slider/themes/default.css';
+
+// User variables
+@import 'user-variables';
+
+// Configuration & utilities
+@import 'variables';
+@import 'utilities';
+
+// Bootstrap
+@import '../../../node_modules/bootstrap/scss/bootstrap';
+
+// Layout & components
+@import 'reboot';
+@import 'components';
+
+// User custom styles
+@import 'user';
+
+@import 'custom';

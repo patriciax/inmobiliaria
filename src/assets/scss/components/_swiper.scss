@@ -1,0 +1,192 @@
+//
+// _swiper.scss
+//
+@import 'swiper/css';
+@import 'swiper/css/navigation';
+@import 'swiper/css/pagination';
+
+.swiper-button-next,
+.swiper-button-prev {
+  position: absolute;
+  top: 50%;
+  width: $carousel-controls-size;
+  height: $carousel-controls-size;
+  margin-top: -($carousel-controls-size * 0.5);
+  transition: $carousel-controls-transition;
+  border-radius: 50%;
+  background-color: $carousel-controls-bg;
+  color: $carousel-controls-color;
+  text-align: center;
+
+  @if $enable-shadows {
+    border: 0;
+    box-shadow: $carousel-controls-box-shadow;
+  } @else {
+    border: $border-width solid $border-color;
+  }
+  z-index: 10;
+
+  &:hover {
+    color: $carousel-controls-hover-color;
+    @include box-shadow($carousel-controls-hover-box-shadow);
+  }
+}
+
+.swiper-button-prev {
+  left: $spacer;
+  > i:not(.fi-chevron-up) {
+    margin-right: 0.0625rem;
+  }
+  > i.fi-chevron-up {
+    margin-bottom: 0.125rem;
+  }
+
+  &::after {
+    font-size: $carousel-controls-font-size;
+    font-weight: 900;
+  }
+}
+.swiper-button-next {
+  right: $spacer;
+  > i:not(.fi-chevron-down) {
+    margin-left: 0.0625rem;
+  }
+
+  &::after {
+    font-size: $carousel-controls-font-size;
+    font-weight: 900;
+  }
+}
+
+.swiper-pagination-bullet {
+  width: 22px;
+  height: 5px;
+  background-color: $white;
+  border-radius: 50px;
+  // box-shadow: $element-shadow;
+  .swiper-pagination-bullet-active {
+    opacity: 1;
+  }
+}
+
+.dynamic-pagination {
+  .swiper-pagination-bullet {
+    width: 8px !important;
+    height: 8px !important;
+    background-color: $white;
+    opacity: 0.5;
+    transition: all 0.5s ease;
+    &.swiper-pagination-bullet-active {
+      opacity: 1;
+      width: 20px !important;
+    }
+  }
+}
+
+.swiper-pagination-fraction {
+  color: $white;
+  font-size: 16px;
+  background-color: rgba($black, 0.3);
+  backdrop-filter: blur(2px);
+}
+
+.pagination-custom {
+  .swiper-pagination-bullet {
+    height: 25px;
+    width: 25px;
+    line-height: 25px;
+    border-radius: 8px;
+    background-color: $white;
+    opacity: 0.5;
+    transition: all 0.5s ease;
+    &.swiper-pagination-bullet-active {
+      color: $secondary;
+      opacity: 1;
+    }
+  }
+}
+
+.swiper-pagination-progressbar {
+  height: 6px !important;
+  background-color: rgba($success, 0.25);
+  .swiper-pagination-progressbar-fill {
+    background-color: $success !important;
+  }
+}
+
+.swiper-scrollbar {
+  background-color: rgba($white, 0.35) !important;
+  backdrop-filter: blur(2px);
+  padding: 1.2px;
+  height: 6px !important;
+  .swiper-scrollbar-drag {
+    background-color: $white;
+  }
+}
+
+.swiper-pagination-dark {
+  .swiper-pagination-bullet {
+    background-color: $secondary;
+  }
+  .dynamic-pagination {
+    .swiper-pagination-bullet {
+      background-color: $secondary;
+    }
+  }
+  &.pagination-custom {
+    .swiper-pagination-bullet {
+      color: $white;
+      &.swiper-pagination-bullet-active {
+        opacity: 1;
+      }
+    }
+  }
+  &.swiper-scrollbar {
+    background-color: rgba($dark, 0.35);
+  }
+}
+
+.tns-carousel-controls {
+  display: flex;
+  .swiper-button-next,
+  .swiper-button-prev {
+    display: block;
+    position: static;
+    width: 2.25rem;
+    height: 2.25rem;
+    transition: all 0.3s ease-in-out;
+    border-radius: 50%;
+    background-color: #fff;
+    color: #454056;
+    font-size: 0.75rem;
+    line-height: 2.25rem;
+    text-align: center;
+    z-index: 10;
+    border: 0;
+    box-shadow:
+      0 0.125rem 0.125rem -0.125rem rgba(31, 27, 45, 0.08),
+      0 0.25rem 0.75rem rgba(31, 27, 45, 0.08);
+  }
+}
+
+.tns-thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -0.4375rem;
+  margin-left: -0.4375rem;
+  padding: 0.4375rem 0;
+  list-style: none;
+
+  .tns-thumbnail {
+    display: block;
+    width: 20%;
+    margin: 0;
+    padding: 0.4375rem;
+    cursor: pointer;
+    
+    .tns-nav-active {
+      pointer-events: none;
+      cursor: default;
+    }
+  }
+}
