@@ -7,10 +7,10 @@ export const routes = [
     {
         path: '/',
         name: 'Home-1',
-        component: () => import('@/views/real-estate/home-1/index.vue'),
+        component: () => import('@/views/public/catalog/sale.vue'),
         meta: {
             title: 'Home v.1',
-            layout: DefaultLayout
+            layout: DefaultLayoutPublic
         }
     },
     {
@@ -25,7 +25,7 @@ export const routes = [
     // catalog routes
     {
         path: '/real-estate-catalog-rent',
-        name: 'Home-1',
+        name: 'Property Rent',
 
         component: () => import('@/views/public/catalog/rent.vue'),
         meta: {
