@@ -11,7 +11,7 @@ defineProps<{
 }>();
 </script>
 <template>
-    <nav v-if="data.subitem" class="mb-3 pt-md-2" aria-label="Breadcrumb">
+    <nav v-if="data.subitems" class="mb-3 pt-md-2" aria-label="Breadcrumb">
         <ol class="breadcrumb">
             <template v-for="item in data">
                 <li class="breadcrumb-item" :class="{ 'active': !item.link }">
