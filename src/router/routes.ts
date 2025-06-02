@@ -10,7 +10,7 @@ export const routes = [
         component: () => import('@/views/public/catalog/sale.vue'),
         meta: {
             title: 'Home v.1',
-            layout: DefaultLayoutPublic
+            layout: DefaultLayout
         }
     },
     {

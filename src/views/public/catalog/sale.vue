@@ -27,7 +27,7 @@ const sliderData = ref({
 </script>
 
 <template>
-    <div class="container-fluid ">
+    <div class="container-fluid mt-4 pt-5 ">
         <div class="row g-0 mt-n3">
             <!-- Filters sidebar (Offcanvas on mobile)-->
             <Filter :slider="sliderData" isActive="Sale" />
