@@ -4,7 +4,7 @@ import { propertySaleData, propertyRentData, getBadgeColor } from './../real-est
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import Breadcrumb from '@/components/Breadcrumb.vue';
 // import Sidebar from './common/sidebar.vue';
-import Sidebar from './../real-estate/vendor/common/sidebarTarjeta.vue';
+import Sidebar from '@/views/real-estate/vendor/common/sidebarTarjeta.vue';
 
 const breadcrumbData = ref([
     {

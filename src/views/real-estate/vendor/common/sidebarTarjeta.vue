@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Form from '../../../public/form.vue'
 </script>
 
