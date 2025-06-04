@@ -34,6 +34,16 @@ export const routes = [
         }
     },
     {
+        path: '/tarjeta-digital',
+        name: 'Tarjeta Digital',
+
+        component: () => import('@/views/public/TarjetaDigital.vue'),
+        meta: {
+            title: 'Tarjeta Digital',
+            layout: DefaultLayoutPublic
+        }
+    },
+    {
         path: '/real-estate-catalog-sale',
         name: 'Property Sale',
         component: () => import('@/views/public/catalog/sale.vue'),

@@ -91,8 +91,8 @@ watch(
             >
           </li>
           <li class="nav-item dropdown">
-            <router-link class="nav-link dropdown-togl dropdown-item" to="/real-estate-catalog-rent"
-              >Nosotros</router-link
+            <a class="nav-link dropdown-togl dropdown-item" href="https://inmobiliaria.club/#nosotros"
+              >Nosotros</a
             >
           </li>
           <li class="nav-item dropdown">
@@ -101,7 +101,7 @@ watch(
 </router-link
             >
           </li>
-          <li class="nav-item dropdown">
+          <!-- <li class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle"
               href="javascript:void(0);"
@@ -118,30 +118,18 @@ watch(
               </li>
              
             </ul>
-          </li>
-
+          </li> -->
           <li class="nav-item dropdown">
-            <a
-              class="nav-link dropdown-toggle"
-              href="javascript:void(0);"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
+            <a class="nav-link dropdown-togl dropdown-item" href="https://inmobiliaria.club/#contacto"
+              >Contacto</a
+            >
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-togl dropdown-item" href="https://inmobiliaria.club/#aliados"
               >Aliados</a
             >
-            <ul class="dropdown-menu">
-              <li>
-                <router-link class="dropdown-item" to="/real-estate-catalog-rent"
-                  >Inmobiliarias</router-link
-                >
-              </li>
-              <li>
-                <router-link class="dropdown-item" to="/real-estate-catalog-rent"
-                  >Agentes</router-link
-                >
-              </li>
-            </ul>
           </li>
+        
           <li class="nav-item d-lg-none">
             <a class="nav-link" data-bs-target="#signin-modal" data-bs-toggle="modal"
               ><i class="fi-user me-2"></i>Iniciar sesión</a
@@ -158,7 +146,7 @@ watch(
           </li>
 
           <!-- perfil -->
-          <!-- <li>
+          <li>
             <div class="dropdown d-none d-lg-block order-lg-3 my-n2 me-3">
               <router-link class="d-block py-2" to="/real-estate-account-info"
                 ><img
@@ -213,7 +201,7 @@ watch(
                 <router-link class="dropdown-item" to="/signin-light">Sign Out</router-link>
               </div>
             </div>
-          </li> -->
+          </li>
           <li>
             <router-link
               class="btn btn-primary btn-sm ms-2 order-lg-3"
