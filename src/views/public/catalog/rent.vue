@@ -3,8 +3,11 @@ import { Swiper, SwiperSlide } from 'swiper/vue';
 import Filter from './common/filter-sidebar.vue';
 import Breadcrumb from '@/components/Breadcrumb.vue';
 import { propertyRentData, getBadgeColor } from './data/index';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import { usePropertyStore } from '@/stores/propertys';
 
+
+const propertyStore = usePropertyStore();
 const breadcrumbData = ref([
     {
         title: 'Inicio',
@@ -23,6 +26,14 @@ const sliderData = ref({
     title: 'Precio por mes',
     defaultValue: [1100, 3000]
 });
+
+onMounted(() => {
+    getPropiestys();
+});
+
+const  getPropiestys = async() => {
+    await propertyStore.getProperties();
+}
 </script>
 
 <template>

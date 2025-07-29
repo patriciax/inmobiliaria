@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import recentlyView from './common/recently-view.vue'
 import Lightgallery from 'lightgallery/vue'
@@ -8,6 +8,14 @@ import lgZoom from 'lightgallery/plugins/zoom'
 
 // If you are using scss you can skip the css imports below and use scss instead
 import 'lightgallery/scss/lightgallery.scss'
+import { usePropertyStore } from '@/stores/propertys';
+import { useAuthStore } from '@/stores/auth'
+import router from '@/router'
+
+const authStore = useAuthStore()
+
+const propertyStore = usePropertyStore();
+
 
 const pluginsData = [lgThumbnail, lgZoom]
 
@@ -35,6 +43,50 @@ const tabs = [
 ];
 
 const activeTab = ref('fotos');
+
+onMounted(async() => {
+ await propertyStore.getPropertyById(Number(router.currentRoute.value.params.id));
+});
+
+
+const publishedImages = computed(() => {
+  const imageList = props.images.length > 0 ? props.images : images.value
+  return imageList
+    .filter(image => image.publish)
+    .sort((a, b) => a.sort_by - b.sort_by)
+})
+
+// Método para asignar las clases CSS del grid basado en el índice
+const getGridClass = (index) => {
+  const classes = ['div1', 'div2', 'div3', 'div4', 'div5', 'div6']
+  const additionalClasses = {
+    1: 'mb-2 mb-md-3', // Para la segunda imagen (índice 1)
+  }
+  
+  const baseClass = classes[index % classes.length] || 'div1'
+  const extraClass = additionalClasses[index] || ''
+  
+  return `${baseClass} ${extraClass}`.trim()
+}
+
+// Función para actualizar imágenes (útil si necesitas actualizarlas dinámicamente)
+const updateImages = (newImages) => {
+  images.value = newImages
+}
+
+// Función para agregar una nueva imagen
+const addImage = (newImage) => {
+  images.value.push(newImage)
+}
+
+// Función para eliminar una imagen por ID
+const removeImage = (imageId) => {
+  const index = images.value.findIndex(img => img.id === imageId)
+  if (index > -1) {
+    images.value.splice(index, 1)
+  }
+}
+
 </script>
 <template>
   <!-- Page header-->
@@ -44,7 +96,7 @@ const activeTab = ref('fotos');
 
     <section class="d-flex justify-content-between w-full">
       <div>
-        <h1 class="h2 mb-2">Pine Apartments</h1>
+        <h1 class="h2 mb-2">{{ propertyStore?.property?.title }}</h1>
         <p class="mb-2 pb-1 fs-lg">28 Jackson Ave Long Island City, NY 67234</p>
         <!-- Features + Sharing-->
         <div class="d-flex justify-content-between align-items-center">
@@ -69,9 +121,9 @@ const activeTab = ref('fotos');
       <section>
         <div class="mb-2 border-bottom">
           <h2 class="h3">
-            $2,000<span class="d-inline-block ms-1 fs-base fw-normal text-body">/month</span>
+            ${{ propertyStore?.property?.price }}<span class="d-inline-block ms-1 fs-base fw-normal text-body">/month</span>
           </h2>
-          <p class="text-end">300 Vistas</p>
+          <p class="text-end"> {{ propertyStore?.property?.visits }} Vistas</p>
         </div>
 
         <div class="text-nowrap text-end">

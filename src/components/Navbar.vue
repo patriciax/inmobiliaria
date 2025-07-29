@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-
+import { useAuthStore } from '@/stores/auth'
 const navbar = ref<HTMLElement | null>(null)
 const scrollOffset = 20
 const isStuck = ref<Boolean>(false)
 const route = useRoute()
-
+const authStore = useAuthStore()
 const navbarStuck = () => {
   if (navbar.value && window.scrollY > scrollOffset) {
     isStuck.value = true
@@ -91,15 +91,14 @@ watch(
             >
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-togl dropdown-item" href="https://inmobiliaria.club/#nosotros"
+            <a
+              class="nav-link dropdown-togl dropdown-item"
+              href="https://inmobiliaria.club/#nosotros"
               >Nosotros</a
             >
           </li>
           <li class="nav-item dropdown">
-            <router-link class="nav-link dropdown-togl dropdown-item" to="/"
-              >Catálogo
-</router-link
-            >
+            <router-link class="nav-link dropdown-togl dropdown-item" to="/">Catálogo </router-link>
           </li>
           <!-- <li class="nav-item dropdown">
             <a
@@ -120,22 +119,26 @@ watch(
             </ul>
           </li> -->
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-togl dropdown-item" href="https://inmobiliaria.club/#contacto"
+            <a
+              class="nav-link dropdown-togl dropdown-item"
+              href="https://inmobiliaria.club/#contacto"
               >Contacto</a
             >
           </li>
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-togl dropdown-item" href="https://inmobiliaria.club/#aliados"
+            <a
+              class="nav-link dropdown-togl dropdown-item"
+              href="https://inmobiliaria.club/#aliados"
               >Aliados</a
             >
           </li>
-        
-          <li class="nav-item d-lg-none">
+
+          <li class="nav-item d-lg-none" v-if="!authStore.isAuthenticated" >
             <a class="nav-link" data-bs-target="#signin-modal" data-bs-toggle="modal"
               ><i class="fi-user me-2"></i>Iniciar sesión</a
             >
           </li>
-          <li>
+          <li  v-if="!authStore.isAuthenticated">
             <a
               class="btn btn-sm text-primary d-none d-lg-block order-lg-3"
               data-bs-target="#signin-modal"
@@ -148,7 +151,7 @@ watch(
           <!-- perfil -->
           <li>
             <div class="dropdown d-none d-lg-block order-lg-3 my-n2 me-3">
-              <router-link class="d-block py-2" to="/real-estate-account-info"
+              <router-link class="d-block py-2" to="/real-estate-account-info" v-if="authStore.isAuthenticated"
                 ><img
                   class="rounded-circle"
                   src="@/assets/img/avatars/30.jpg"

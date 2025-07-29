@@ -1,11 +1,15 @@
 <script lang="ts" setup>
 import { propertySaleData, getBadgeColor } from './data/index';
-import { ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { Swiper, SwiperSlide } from 'swiper/vue';
-
 import Filter from './common/filter-sidebar.vue';
 import Breadcrumb from '@/components/Breadcrumb.vue';
+import { usePropertyStore } from '@/stores/propertys';
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
+
+const propertyStore = usePropertyStore();
 const breadcrumbData = ref([
     {
         title: 'Inicio',
@@ -24,6 +28,22 @@ const sliderData = ref({
     title: 'Precio del inmueble',
     defaultValue: [90000, 250000]
 });
+
+onMounted(() => {
+    getPropiestys();
+});
+
+const  getPropiestys = async() => {
+    await propertyStore.getProperties();
+}
+
+watch (
+    () => authStore.isAuthenticated,
+    () => {
+        getPropiestys();
+    }
+)
+
 </script>
 
 <template>
@@ -71,10 +91,10 @@ const sliderData = ref({
                 <!-- Catalog grid-->
                 <div class="row g-4 py-4">
                     <!-- Item-->
-                    <div v-for="(property, index) in propertySaleData" :key="index" class="col-sm-6 col-xl-4">
+                    <div v-for="(property, index) in propertyStore.property" :key="index" class="col-sm-6 col-xl-4">
                         <div class="card shadow-sm card-hover border-0 h-100">
                             <div class="tns-carousel-wrapper card-img-top card-img-hover">
-                                <router-link class="img-overlay" to="/real-estate-single-v1"></router-link>
+                                <router-link class="img-overlay" :to="`/real-estate-single-v1/${property.id}`"></router-link>
                                 <div v-if="property.badge" class="position-absolute start-0 top-0 pt-3 ps-3">
                                     <span v-for="(badge) in property.badge" :class="`d-table badge bg-${getBadgeColor(badge)} mb-1`">{{ badge }}</span>
                                 </div>
@@ -83,16 +103,16 @@ const sliderData = ref({
                                         <i class="fi-heart"></i>
                                     </button>
                                 </div>
-                                <Swiper v-if="property.imageSrc" :slidesPerView="1" :loop="true">
-                                    <SwiperSlide v-for="(image, index) in property.imageSrc" :key="index">
-                                        <img :src="image" alt="Image" />
+                                <Swiper v-if="property.images" :slidesPerView="1" :loop="true">
+                                    <SwiperSlide v-for="(image, index) in property.images" :key="index">
+                                        <img :src="image.url.thumbnail" alt="Image" />
                                     </SwiperSlide>
                                 </Swiper>
                             </div>
                             <div class="card-body position-relative pb-3">
-                                <h4 class="mb-1 fs-xs fw-normal text-uppercase text-primary">{{ property.type }}</h4>
+                                <h4 class="mb-1 fs-xs fw-normal text-uppercase text-primary">{{ property.type.name }}</h4>
                                 <h3 class="h6 mb-2 fs-base">
-                                    <router-link class="nav-link stretched-link" to="/real-estate-single-v1">{{ property.title }}</router-link>
+                                    <router-link class="nav-link stretched-link" :to="`/real-estate-single-v1/${property.id}`">{{ property.title }}</router-link>
                                 </h3>
                                 <p class="mb-2 fs-sm text-muted">{{ property.location }}</p>
                                 <div class="fw-bold">

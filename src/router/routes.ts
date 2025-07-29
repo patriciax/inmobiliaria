@@ -53,7 +53,7 @@ export const routes = [
         }
     },
     {
-        path: '/real-estate-single-v1',
+        path: '/real-estate-single-v1/:id',
         name: 'Single Property v1',
         component: () => import('@/views/public/catalog/single-1.vue'),
         meta: {
