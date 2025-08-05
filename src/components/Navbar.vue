@@ -133,12 +133,12 @@ watch(
             >
           </li>
 
-          <li class="nav-item d-lg-none" v-if="!authStore.isAuthenticated" >
+          <li class="nav-item d-lg-none" v-if="!authStore.isAuth" >
             <a class="nav-link" data-bs-target="#signin-modal" data-bs-toggle="modal"
               ><i class="fi-user me-2"></i>Iniciar sesión</a
             >
           </li>
-          <li  v-if="!authStore.isAuthenticated">
+          <li  v-if="!authStore.isAuth">
             <a
               class="btn btn-sm text-primary d-none d-lg-block order-lg-3"
               data-bs-target="#signin-modal"
@@ -151,7 +151,7 @@ watch(
           <!-- perfil -->
           <li>
             <div class="dropdown d-none d-lg-block order-lg-3 my-n2 me-3">
-              <router-link class="d-block py-2" to="/real-estate-account-info" v-if="authStore.isAuthenticated"
+              <router-link class="d-block py-2" to="/real-estate-account-info" v-if="authStore.isAuth"
                 ><img
                   class="rounded-circle"
                   src="@/assets/img/avatars/30.jpg"

@@ -33,10 +33,10 @@ const pricePerMonth = ref(props.slider.defaultValue);
 
                 <ul class="nav nav-tabs mb-0">
                     <li class="nav-item">
-                        <router-link class="nav-link" :class="{ 'active': isActive === 'Rent' }" to="/real-estate-catalog-rent"><i class="fi-rent fs-base me-2"></i>For rent</router-link>
+                        <router-link class="nav-link" :class="{ 'active': isActive === 'Rent' }" to="/rent"><i class="fi-rent fs-base me-2"></i>En alquiler</router-link>
                     </li>
                     <li class="nav-item">
-                        <router-link class="nav-link" :class="{ 'active': isActive === 'Sale' }" to="/real-estate-catalog-sale"><i class="fi-home fs-base me-2"></i>For sale</router-link>
+                        <router-link class="nav-link" :class="{ 'active': isActive === 'Sale' }" to="/"><i class="fi-home fs-base me-2"></i>En venta</router-link>
                     </li>
                 </ul>
             </div>

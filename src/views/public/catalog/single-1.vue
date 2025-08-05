@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import recentlyView from './common/recently-view.vue'
 import Lightgallery from 'lightgallery/vue'
@@ -13,33 +13,35 @@ import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
 
 const authStore = useAuthStore()
-
 const propertyStore = usePropertyStore();
-
 
 const pluginsData = [lgThumbnail, lgZoom]
 
+const getTitle = computed(() => {
+  return propertyStore?.dataProperty?.title || 'Detalle de propiedad';
+});
+
 const breadcrumbData = ref([
   {
-    title: 'Home',
+    title: 'Inicio',
     link: '/',
     subitems: [
       {
-        title: 'Property for rent',
-        link: '/real-estate-catalog-rent'
+        title: propertyStore?.dataProperty?.category_id === 2 ? 'Inmuebles en alquiler' : 'Inmuebles en venta',
+        link: propertyStore?.dataProperty?.category_id === 2 ? '/rent' : '/'
       },
       {
-        title: 'Pine Apartments'
+        title: propertyStore?.dataProperty?.title || 'Detalle de propiedad',
       }
     ]
   }
 ])
 
 const tabs = [
-  { id: 'fotos', label: 'Fotos' },
-  { id: 'video', label: 'Video' },
-  { id: 'tour', label: 'Tour' },
-  { id: 'mapa', label: 'Mapa' }
+  { id: 'fotos', label: 'Fotos' , activeTab: propertyStore?.dataProperty?.images?.length > 0 },
+  { id: 'video', label: 'Video', activeTab: propertyStore?.dataProperty?.details?.video_url },
+  { id: 'tour', label: 'Tour', activeTab: propertyStore?.dataProperty?.details?.view360_url},
+  { id: 'mapa', label: 'Mapa', activeTab: propertyStore?.dataProperty?.details?.map_url }
 ];
 
 const activeTab = ref('fotos');
@@ -48,10 +50,14 @@ onMounted(async() => {
  await propertyStore.getPropertyById(Number(router.currentRoute.value.params.id));
 });
 
-
+// Computed para obtener las imágenes publicadas y ordenadas
 const publishedImages = computed(() => {
-  const imageList = props.images.length > 0 ? props.images : images.value
-  return imageList
+  // Verificar si propertyStore.dataProperty.images existe y es un array
+  if (!propertyStore.dataProperty?.images || !Array.isArray(propertyStore.dataProperty.images)) {
+    return []
+  }
+  
+  return propertyStore.dataProperty.images
     .filter(image => image.publish)
     .sort((a, b) => a.sort_by - b.sort_by)
 })
@@ -69,25 +75,18 @@ const getGridClass = (index) => {
   return `${baseClass} ${extraClass}`.trim()
 }
 
-// Función para actualizar imágenes (útil si necesitas actualizarlas dinámicamente)
-const updateImages = (newImages) => {
-  images.value = newImages
-}
-
-// Función para agregar una nueva imagen
-const addImage = (newImage) => {
-  images.value.push(newImage)
-}
-
-// Función para eliminar una imagen por ID
-const removeImage = (imageId) => {
-  const index = images.value.findIndex(img => img.id === imageId)
-  if (index > -1) {
-    images.value.splice(index, 1)
+watch (
+  () => router.currentRoute.value.params.id,
+  async (newId) => {
+    if (newId) {
+      await propertyStore.getPropertyById(Number(newId));
+      breadcrumbData.value[0].subitems[1].title = propertyStore.dataProperty.title;
+    }
   }
-}
+);
 
 </script>
+
 <template>
   <!-- Page header-->
   <section class="container pt-5 mt-5">
@@ -96,24 +95,24 @@ const removeImage = (imageId) => {
 
     <section class="d-flex justify-content-between w-full">
       <div>
-        <h1 class="h2 mb-2">{{ propertyStore?.property?.title }}</h1>
-        <p class="mb-2 pb-1 fs-lg">28 Jackson Ave Long Island City, NY 67234</p>
+        <h1 class="h2 mb-2">{{ propertyStore?.dataProperty?.title }}</h1>
+        <p class="mb-2 pb-1 fs-lg">{{ propertyStore?.dataProperty?.location }}</p>
         <!-- Features + Sharing-->
         <div class="d-flex justify-content-between align-items-center">
           <ul class="d-flex mb-4 list-unstyled">
             <li class="me-3 pe-3 border-end">
-              <b class="me-1">4</b>
+              <b class="me-1">{{ propertyStore?.dataProperty?.rooms }}</b>
               <i class="fi-bed mt-n1 lead align-middle text-muted"></i>
             </li>
             <li class="me-3 pe-3 border-end">
-              <b class="me-1">2</b>
+              <b class="me-1">{{ propertyStore?.dataProperty?.bathrooms }}</b>
               <i class="fi-bath mt-n1 lead align-middle text-muted"></i>
             </li>
             <li class="me-3 pe-3 border-end">
-              <b class="me-1">2</b>
+              <b class="me-1">{{ propertyStore?.dataProperty?.parkings }}</b>
               <i class="fi-car mt-n1 lead align-middle text-muted"></i>
             </li>
-            <li><b>56 </b>sq.m</li>
+            <li><b>{{ propertyStore?.dataProperty?.area }} </b>sq.m</li>
           </ul>
         </div>
       </div>
@@ -121,9 +120,9 @@ const removeImage = (imageId) => {
       <section>
         <div class="mb-2 border-bottom">
           <h2 class="h3">
-            ${{ propertyStore?.property?.price }}<span class="d-inline-block ms-1 fs-base fw-normal text-body">/month</span>
+            ${{ propertyStore?.dataProperty?.price }}<span class="d-inline-block ms-1 fs-base fw-normal text-body">/month</span>
           </h2>
-          <p class="text-end"> {{ propertyStore?.property?.visits }} Vistas</p>
+          <p class="text-end"> {{ propertyStore?.dataProperty?.visits }} Vistas</p>
         </div>
 
         <div class="text-nowrap text-end">
@@ -162,96 +161,80 @@ const removeImage = (imageId) => {
 
   <!-- Gallery-->
   <div class="container overflow-auto mb-4 pb-3">
-   
     <div class="tabs-container">
-    <!-- Pestañas como botones independientes -->
-  
-    <!-- Contenido de las pestañas -->
-    <div class="tabs-content">
-      <div v-show="activeTab === 'fotos'" class="tab-panel">
-   <div class="row g-2 g-md-3 gallery" style="min-width: 30rem">
-      <div class="parent">
-        <lightgallery :settings="{ speed: 500, plugins: pluginsData }">
-          <a
-            class="gallery-item rounded rounded-md-3 div1"
-            href="../../../src/assets/img/real-estate/single/01.jpg"
-          >
-            <img alt="Bathroom" src="@/assets/img/real-estate/single/01.jpg" />
-          </a>
-          <a
-            class="gallery-item rounded rounded-md-3 mb-2 mb-md-3 div2"
-            data-lg-size="1600-1067"
-            href="../../../src/assets/img/real-estate/single/02.jpg"
-          >
-            <img alt="Bedroom" src="@/assets/img/real-estate/single/02.jpg" />
-          </a>
-          <a
-            class="gallery-item rounded rounded-md-3 div3"
-            data-lg-size="1600-1067"
-            href="../../../src/assets/img/real-estate/single/03.jpg"
-          >
-            <img alt="Living Room" src="@/assets/img/real-estate/single/03.jpg" />
-          </a>
-          <a
-            class="gallery-item rounded rounded-md-3 div4"
-            href="../../../src/assets/img/real-estate/single/04.jpg"
-          >
-            <img alt="Bedroom" src="@/assets/img/real-estate/single/th04.jpg" />
-          </a>
-          <a
-            class="gallery-item rounded rounded-md-3 div5"
-            href="../../../src/assets/img/real-estate/single/04.jpg"
-          >
-            <img alt="Bedroom" src="@/assets/img/real-estate/single/th04.jpg" />
-          </a>
-          <a
-            class="gallery-item rounded rounded-md-3 div6"
-            href="../../../src/assets/img/real-estate/single/04.jpg"
-          >
-            <img alt="Bedroom" src="@/assets/img/real-estate/single/th04.jpg" />
-          </a>
-        </lightgallery>
-      </div>
-    </div>
-      </div>
+      <!-- Contenido de las pestañas -->
+      <div class="tabs-content">
+        <div v-show="activeTab === 'fotos'" class="tab-panel">
+          <div class="row g-2 g-md-3 gallery" style="min-width: 30rem">
+            <div class="parent">
+              <lightgallery :settings="{ speed: 500, plugins: pluginsData }" v-if="publishedImages.length > 0">
+                <a
+                  v-for="(image, index) in publishedImages"
+                  :key="image.id"
+                  class="gallery-item rounded rounded-md-3"
+                  :class="getGridClass(index)"
+                  :href="image.url.full"
+                  :data-lg-size="image.url.full ? '1600-1067' : undefined"
+                >
+                  <img 
+                    :alt="image.description || `Imagen ${index + 1}`" 
+                    :src="image.url.medium || image.url.full" 
+                    loading="lazy"
+                  />
+                </a>
+              </lightgallery>
+              
+              <!-- Mensaje cuando no hay imágenes -->
+              <div v-else class="placeholder-content">
+                <p>No hay imágenes disponibles para esta propiedad</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <div v-show="activeTab === 'video'" class="tab-panel">
-        <div class="placeholder-content">
-          <p>Video promocional del inmueble</p>
+        <div v-show="activeTab === 'video'" class="tab-panel">
+          <div class="placeholder-content">
+           <video
+              v-if="propertyStore?.dataProperty?.details?.video_url"
+              :src="propertyStore?.dataProperty?.details?.video_url"
+              controls
+              class="w-100"
+            ></video>
+            <p v-else>No hay video disponible para esta propiedad</p>
+          </div>
+        </div>
+
+        <div v-show="activeTab === 'tour'" class="tab-panel">
+          <div class="placeholder-content">
+            <p>Tour virtual interactivo</p>
+          </div>
+        </div>
+
+        <div v-show="activeTab === 'mapa'" class="tab-panel">
+          <h3>Ubicación en Mapa</h3>
+          <div class="placeholder-content">
+            <p>Mapa de ubicación del inmueble</p>
+          </div>
         </div>
       </div>
+      
+      <div class="tabs-header mt-3">
+        <template           v-for="tab in tabs"
+        >
+        <button
+        v-if="tab.activeTab"
+          :key="tab.id"
+          @click="activeTab = tab.id"
+          :class="{ 'active': activeTab === tab.id }"
+          class="tab-button"
+        >
+          {{ tab.label }}
+        </button>
 
-      <div v-show="activeTab === 'tour'" class="tab-panel">
-        <div class="placeholder-content">
-          <p>Tour virtual interactivo</p>
-        </div>
-      </div>
-
-      <div v-show="activeTab === 'mapa'" class="tab-panel">
-        <h3>Ubicación en Mapa</h3>
-        <div class="placeholder-content">
-          <p>Mapa de ubicación del inmueble</p>
-        </div>
+        </template>
+      
       </div>
     </div>
-    <div class="tabs-header mt-3">
-      <button
-        v-for="tab in tabs"
-        :key="tab.id"
-        @click="activeTab = tab.id"
-        :class="{ 'active': activeTab === tab.id }"
-        class="tab-button"
-      >
-        {{ tab.label }}
-      </button>
-    </div>
-
-  </div>
-<section>
-
-</section>
-
-
   </div>
 
   <!-- Post content-->
@@ -260,55 +243,47 @@ const removeImage = (imageId) => {
       <div class="col-md-7 mb-md-0 mb-4">
         <span class="badge bg-success me-2 mb-3">Verified</span
         ><span class="badge bg-info me-2 mb-3">New</span>
-        <!-- <h2 class="h3 mb-4 pb-4 border-bottom">
-                    $2,000<span class="d-inline-block ms-1 fs-base fw-normal text-body">/month</span>
-                </h2> -->
+        
         <!-- Overview-->
         <div class="mb-4 pb-md-3">
-          <h3 class="h4">Overview</h3>
+          <h3 class="h4">Descripción general</h3>
           <p class="mb-1">
-            Lorem tincidunt lectus vitae id vulputate diam quam. Imperdiet non scelerisque turpis
-            sed etiam ultrices. Blandit mollis dignissim egestas consectetur porttitor. Vulputate
-            dolor pretium, dignissim eu augue sit ut convallis. Lectus est, magna urna feugiat sed
-            ultricies sed in lacinia. Fusce potenti sit id pharetra vel ornare. Vestibulum sed
-            tellus ullamcorper arcu.
+            {{ propertyStore?.dataProperty?.observations|| 'No hay descripción disponible.' }}
           </p>
-          <div class="collapse" id="seeMoreOverview">
+          <div class="collapse" id="seeMoreOverview" v-if="propertyStore?.dataProperty?.notes">
             <p class="mb-1">
-              Asperiores eos molestias, aspernatur assumenda vel corporis ex, magni excepturi totam
-              exercitationem quia inventore quod amet labore impedit quae distinctio? Officiis
-              blanditiis consequatur alias, atque, sed est incidunt accusamus repudiandae tempora
-              repellendus obcaecati delectus ducimus inventore tempore harum numquam autem eligendi
-              culpa.
+              {{ propertyStore?.dataProperty?.notes }}
             </p>
           </div>
           <a
             class="collapse-label collapsed"
             data-bs-target="#seeMoreOverview"
             data-bs-toggle="collapse"
-            data-bs-label-collapsed="Show more"
-            data-bs-label-expanded="Show less"
+            data-bs-label-collapsed="Ver más"
+            data-bs-label-expanded="Ver menos"
             role="button"
             aria-expanded="false"
             aria-controls="seeMoreOverview"
           ></a>
         </div>
+        
         <!-- Property Details-->
         <div class="mb-4 pb-md-3">
-          <h3 class="h4">Property Details</h3>
+          <h3 class="h4">Detalles de la propiedad</h3>
           <ul class="list-unstyled mb-0">
-            <li><b>Type: </b>apartment</li>
-            <li><b>Apartment area: </b>56 sq.m</li>
-            <li><b>Built: </b>2015</li>
-            <li><b>Bedrooms: </b>4</li>
-            <li><b>Bathrooms: </b>2</li>
-            <li><b>Parking places: </b>2</li>
-            <li><b>Pets allowed: </b>cats only</li>
+            <li><b>Type: </b>{{ propertyStore?.dataProperty?.type?.description }}</li>
+            <li><b>Area: </b> {{ propertyStore?.dataProperty?.area }} sq.m</li>
+            <li><b>Construido: </b>{{ propertyStore?.dataProperty?.year || 'Sin información' }}</li>
+            <li><b>Dormitorios: </b>{{ propertyStore?.dataProperty?.rooms }}</li>
+            <li><b>Baños: </b>{{ propertyStore?.dataProperty?.bathrooms }}</li>
+            <li><b>Plazas de estacionamiento: </b>{{ propertyStore?.dataProperty?.parkings }}</li>
+            <li><b>Se admiten mascotas: </b>{{ propertyStore?.dataProperty?.pets || 'Sin información' }}</li>
           </ul>
         </div>
+        
         <!-- Amenities-->
         <div class="mb-4 pb-md-3">
-          <h3 class="h4">Amenities</h3>
+          <h3 class="h4">Servicios</h3>
           <ul
             class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1 text-nowrap"
           >
@@ -356,9 +331,8 @@ const removeImage = (imageId) => {
             aria-controls="seeMoreAmenities"
           ></a>
         </div>
-        <!-- Post meta-->
-     
       </div>
+      
       <!-- Sidebar-->
       <aside class="col-lg-4 col-md-5 ms-lg-auto pb-1">
         <!-- Contact card-->
@@ -446,7 +420,6 @@ const removeImage = (imageId) => {
             </form>
           </div>
         </div>
-   
       </aside>
     </div>
   </section>
@@ -536,6 +509,7 @@ const removeImage = (imageId) => {
   grid-template-rows: repeat(3, 1fr);
   gap: 8px;
 }
+
 .div1 {
   grid-column: span 2 / span 2;
   grid-row: span 2 / span 2;
@@ -568,8 +542,6 @@ const removeImage = (imageId) => {
     height: 100%;
     object-fit: cover;
 }
-
-
 
 .tabs-header {
   display: flex;
@@ -605,15 +577,11 @@ const removeImage = (imageId) => {
 }
 
 .tab-button.active:hover {
-  /* background-color: #3a56d4; */
   transform: none;
 }
 
 .tabs-content {
-  /* padding: 20px; */
   background-color: #fff;
-  /* border-radius: 8px; */
-  /* box-shadow: 0 2px 8px rgba(0,0,0,0.1); */
 }
 
 .tab-panel h3 {

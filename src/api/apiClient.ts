@@ -8,7 +8,7 @@ import axios, {
 
 // Configuración base del cliente
 const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://mls.inmobiliaria.club/apire/v1',
+  baseURL: import.meta.env.VITE_API_URL || 'https://mls.inmobiliaria.club/apire/',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

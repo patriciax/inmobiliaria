@@ -4,12 +4,30 @@ import DefaultLayoutPublic from "@/layouts/Public.vue";
 
 export const routes = [
     // home routes
+    // {
+    //     path: '/',
+    //     name: 'Home-1',
+    //     component: () => import('@/views/public/catalog/sale.vue'),
+    //     meta: {
+    //         title: 'Home v.1',
+    //         layout: DefaultLayout
+    //     }
+    // },
     {
         path: '/',
-        name: 'Home-1',
+        name: 'Property Sale',
         component: () => import('@/views/public/catalog/sale.vue'),
         meta: {
-            title: 'Home v.1',
+            title: 'Property For Sale',
+            layout: DefaultLayout
+        }
+    },
+    {
+        path: '/rent',
+        name: 'Rent',
+        component: () => import('@/views/public/catalog/rentPublic.vue'),
+        meta: {
+            title: 'Rent',
             layout: DefaultLayout
         }
     },
@@ -43,15 +61,7 @@ export const routes = [
             layout: DefaultLayoutPublic
         }
     },
-    {
-        path: '/real-estate-catalog-sale',
-        name: 'Property Sale',
-        component: () => import('@/views/public/catalog/sale.vue'),
-        meta: {
-            title: 'Property For Sale',
-            layout: DefaultLayoutPublic
-        }
-    },
+   
     {
         path: '/real-estate-single-v1/:id',
         name: 'Single Property v1',

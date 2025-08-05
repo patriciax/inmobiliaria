@@ -45,12 +45,12 @@ export interface AuthResponse {
 export const useAuthStore = defineStore('auth', () => {
   // Estado reactivo
   const user = ref<User | null>(null)
-  const token = ref<string | null>(null)
+  const token = ref(localStorage.getItem('token') || '')
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const registerDataUser = ref<RegisterData | null>(null)
   const perfilStore = usePerfilStore()
-
+const isAuth = ref(false)
   // Getters computados
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.role === 1)
@@ -61,24 +61,25 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Función para inicializar la sesión (verificar token guardado)
   const initializeAuth = async (): Promise<void> => {
-    console.log('🔄 Inicializando autenticación...')
+    console.log(' Inicializando autenticación...')
     
     // Verificar si hay token guardado en el store
     if (token.value) {
-      console.log('🔑 Token encontrado en store:', token.value.substring(0, 20) + '...')
+      console.log(' Token encontrado en store:', token.value.substring(0, 20) + '...')
       
       // Configurar token en axios
       setAuthToken(token.value)
-      
+      isAuth.value = true
       try {
         await getProfile()
-        console.log('✅ Sesión restaurada exitosamente')
+        console.log(' Sesión restaurada exitosamente')
       } catch (error) {
-        console.warn('⚠️ Token inválido, limpiando sesión')
+        console.warn(' Token inválido, limpiando sesión')
         await logout()
       }
     } else {
-      console.log('❌ No hay token guardado')
+      console.log(' No hay token guardado')
+      isAuth.value = false
     }
   }
 
@@ -91,9 +92,9 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await api.post<AuthResponse>('/auth/register', registerData)
       registerDataUser.value = registerData
       sendCode(response.data.email)
-      console.log('✅ Usuario registrado exitosamente:', response.user)
+      console.log(' Usuario registrado exitosamente:', response.user)
     } catch (err: any) {
-      console.error('❌ Error en registro:', err)
+      console.error(' Error en registro:', err)
       toast.error('Error al registrar usuario. Intenta nuevamente.')
       if (err.response?.data?.message) {
         error.value = err.response.data.message
@@ -123,7 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
         toast.success('Código enviado');
       }
     } catch (err: any) {
-      console.error('❌ Error en registro:', err)
+      console.error(' Error en registro:', err)
 
       if (err.response?.data?.message) {
         error.value = err.response.data.message
@@ -167,7 +168,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
     } catch (err: any) {
       toast.error('Error al verificar el código. Intenta nuevamente.')
-      console.error('❌ Error en registro:', err)
+      console.error(' Error en registro:', err)
 
       if (err.response?.data?.message) {
         error.value = err.response.data.message
@@ -189,7 +190,7 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await api.post<AuthResponse>('/auth/login', loginData)
+      const response = await api.post<AuthResponse>('/v1/auth/login', loginData)
 
       // Guardar datos de autenticación
       user.value = response.user
@@ -198,13 +199,14 @@ export const useAuthStore = defineStore('auth', () => {
       // Configurar token en axios
       setAuthToken(response.token)
 
-      console.log('✅ Usuario logueado exitosamente:', response.user)
-      console.log('🔑 Token guardado:', response.token.substring(0, 20) + '...')
+      console.log(' Usuario logueado exitosamente:', response.user)
+      console.log(' Token guardado:', response.token.substring(0, 20) + '...')
 
       const signinModalElement = document.getElementById('signin-modal');
       const signinModal = Modal.getInstance(signinModalElement) || new Modal(signinModalElement!);
       signinModal.hide();
 
+      isAuth.value = true
       // Obtener perfil actualizado del servidor
       try {
         await getProfile()
@@ -213,8 +215,8 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
     } catch (err: any) {
-      console.error('❌ Error en login:', err)
-
+      console.error(' Error en login:', err)
+      isAuth.value = false
       if (err.response?.data?.message) {
         error.value = err.response.data.message
       } else {
@@ -241,12 +243,13 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       token.value = null
       error.value = null
+      isAuth.value = false
 
       // Limpiar token de axios
       clearAuthToken()
 
       isLoading.value = false
-      console.log('✅ Sesión cerrada')
+      console.log(' Sesión cerrada')
     }
   }
 
@@ -263,13 +266,13 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
 
     try {
-      const response = await api.get<{ user: User }>('/auth/user/me/')
+      const response = await api.get<{ user: User }>('/v1/auth/user/me/')
       user.value = response.data // Cambié esto para que actualice el user en el store
       perfilStore.setProfile(response.data)
-      console.log('✅ Perfil obtenido:', user.value)
+      console.log(' Perfil obtenido:', user.value)
 
     } catch (err: any) {
-      console.error('❌ Error al obtener perfil:', err)
+      console.error(' Error al obtener perfil:', err)
 
       if (err.response?.status === 401) {
         await logout()
@@ -312,6 +315,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading,
     error,
     registerDataUser,
+    isAuth,
 
     // Getters
     isAuthenticated,
@@ -330,7 +334,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 }, {
   persist: {
-    storage: sessionStorage,
+    storage: localStorage,
     key: 'auth',
     paths: ['user', 'token']
   }

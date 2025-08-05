@@ -32,7 +32,7 @@ onMounted(() => {
 });
 
 const  getPropiestys = async() => {
-    await propertyStore.getProperties();
+    await propertyStore.getPropertiesPublic();
 }
 </script>
 
