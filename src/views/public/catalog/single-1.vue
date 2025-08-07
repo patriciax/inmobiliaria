@@ -3,8 +3,21 @@ import { computed, onMounted, ref, watch } from 'vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import recentlyView from './common/recently-view.vue'
 import Lightgallery from 'lightgallery/vue'
+import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
+import 'leaflet/dist/leaflet.css'
 import lgThumbnail from 'lightgallery/plugins/thumbnail'
 import lgZoom from 'lightgallery/plugins/zoom'
+
+// Importaciones necesarias para Leaflet
+import L from 'leaflet'
+
+// Solución para los iconos de Leaflet
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+})
 
 // If you are using scss you can skip the css imports below and use scss instead
 import 'lightgallery/scss/lightgallery.scss'
@@ -16,11 +29,7 @@ const authStore = useAuthStore()
 const propertyStore = usePropertyStore();
 
 const pluginsData = [lgThumbnail, lgZoom]
-
-const getTitle = computed(() => {
-  return propertyStore?.dataProperty?.title || 'Detalle de propiedad';
-});
-
+const title=ref('Detalle de propiedad')
 const breadcrumbData = ref([
   {
     title: 'Inicio',
@@ -31,7 +40,7 @@ const breadcrumbData = ref([
         link: propertyStore?.dataProperty?.category_id === 2 ? '/rent' : '/'
       },
       {
-        title: propertyStore?.dataProperty?.title || 'Detalle de propiedad',
+        title: title.value,
       }
     ]
   }
@@ -46,8 +55,21 @@ const tabs = [
 
 const activeTab = ref('fotos');
 
+// Variables para el mapa
+const mapReady = ref(false)
+const mapCenter = ref([0, 0])
+const mapZoom = ref(15)
+
 onMounted(async() => {
  await propertyStore.getPropertyById(Number(router.currentRoute.value.params.id));
+ title.value = propertyStore.dataProperty.title;
+ breadcrumbData.value[0].subitems[1].title = title.value;
+ 
+ // Configurar coordenadas del mapa
+ if (propertyStore.dataProperty?.latitude && propertyStore.dataProperty?.longitude) {
+   mapCenter.value = [propertyStore.dataProperty.latitude, propertyStore.dataProperty.longitude]
+   mapReady.value = true
+ }
 });
 
 // Computed para obtener las imágenes publicadas y ordenadas
@@ -75,12 +97,23 @@ const getGridClass = (index) => {
   return `${baseClass} ${extraClass}`.trim()
 }
 
+// Función para manejar cuando el mapa está listo
+const onMapReady = () => {
+  console.log('Mapa listo')
+}
+
 watch (
   () => router.currentRoute.value.params.id,
   async (newId) => {
     if (newId) {
       await propertyStore.getPropertyById(Number(newId));
-      breadcrumbData.value[0].subitems[1].title = propertyStore.dataProperty.title;
+      title.value = propertyStore.dataProperty.title;
+      
+      // Actualizar coordenadas del mapa
+      if (propertyStore.dataProperty?.latitude && propertyStore.dataProperty?.longitude) {
+        mapCenter.value = [propertyStore.dataProperty.latitude, propertyStore.dataProperty.longitude]
+        mapReady.value = true
+      }
     }
   }
 );
@@ -212,18 +245,41 @@ watch (
 
         <div v-show="activeTab === 'mapa'" class="tab-panel">
           <h3>Ubicación en Mapa</h3>
-          <div class="placeholder-content">
-            <p>Mapa de ubicación del inmueble</p>
+          <div class="map-container" v-if="mapReady && propertyStore?.dataProperty">
+            <LMap
+              :zoom="mapZoom"
+              :center="mapCenter"
+              :use-global-leaflet="false"
+              style="height: 400px; width: 100%; z-index: 1;"
+              @ready="onMapReady"
+            >
+              <LTileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+              />
+              <LMarker 
+                :lat-lng="mapCenter"
+                v-if="mapCenter[0] !== 0 && mapCenter[1] !== 0"
+              >
+                <LPopup>
+                  <div>
+                    <strong>{{ propertyStore.dataProperty?.title || 'Propiedad' }}</strong><br>
+                    <span v-if="propertyStore.dataProperty?.location">{{ propertyStore.dataProperty.location }}</span>
+                  </div>
+                </LPopup>
+              </LMarker>
+            </LMap>
+          </div>
+          <div v-else class="placeholder-content">
+            <p>No hay coordenadas disponibles para mostrar el mapa</p>
           </div>
         </div>
       </div>
       
       <div class="tabs-header mt-3">
-        <template           v-for="tab in tabs"
-        >
+        <template v-for="tab in tabs" :key="tab.id">
         <button
         v-if="tab.activeTab"
-          :key="tab.id"
           @click="activeTab = tab.id"
           :class="{ 'active': activeTab === tab.id }"
           class="tab-button"
@@ -601,6 +657,12 @@ watch (
   color: #6c757d;
   font-size: 1.1rem;
   border: 1px dashed #adb5bd;
+}
+
+.map-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 /* Responsive */

@@ -71,7 +71,7 @@ export const usePropertyStore = defineStore('property', () => {
   const property = ref<UserData[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
-  const dataProperty = ref<UserData[]>([])
+  const dataProperty = ref<UserData | null>(null)
   const pagination = ref<PaginationData>({
     total: 0,
     totalPages: 0,
