@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { api, setAuthToken, clearAuthToken } from '@/api/apiClient'
 import { toast } from 'vue3-toastify'
+import type { User } from './auth'
+import type { Role } from './auth'
 
 // Interfaces
 export interface UserData {
@@ -84,6 +86,13 @@ export interface UserData {
   beds?: number
   baths?: number
   cars?: number
+  profile?: {
+    id: number
+    user: User
+    role: Role
+    created_at?: string
+    updated_at?: string
+  }
 }
 
 export interface PaginationData {

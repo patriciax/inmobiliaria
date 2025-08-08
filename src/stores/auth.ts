@@ -19,6 +19,14 @@ export interface User {
   updated_at?: string
 }
 
+export interface Role {
+  id: number
+  name: string
+  description?: string
+  created_at?: string
+  updated_at?: string
+}
+
 export interface RegisterData {
   email: string
   password: string

@@ -118,6 +118,48 @@ watch (
   }
 );
 
+
+const getAvailableServices = () => {
+      const specifications = propertyStore?.dataProperty?.details?.specifications || [];
+      // Filtrar solo los servicios que están disponibles (value !== false && value !== 0)
+      return specifications.filter((spec: any) => 
+        spec.value !== false && 
+        spec.value !== 0 && 
+        spec.value !== null && 
+        spec.value !== undefined
+      );
+    }
+    
+const getIconClass = (serviceName: string) => {
+      const iconMap: { [key: string]: string } = {
+        'Piscina': 'fi-swimming-pool',
+        'Zona BBQ': 'fi-grill',
+        'Jardin Privado': 'fi-plant',
+        'Parque Infantil': 'fi-playground',
+        'Cancha Deportiva': 'fi-sport',
+        'Terraza': 'fi-terrace',
+        'Balcon': 'fi-balcony',
+        'Chimenea': 'fi-fire',
+        'Cocina Integral': 'fi-dish',
+        'Aire Acondicionado': 'fi-snowflake',
+        'Closets': 'fi-closet',
+        'Piso Laminado': 'fi-floor',
+        'Gimnasio': 'fi-gym',
+        'Ascensores': 'fi-elevator',
+        'Porteria 24h': 'fi-security',
+        'CCTV': 'fi-cctv',
+        'Wifi': 'fi-wifi',
+        'Servicio Domestico': 'fi-cleaning',
+        'Parques cercanos': 'fi-park',
+        'Transporte Publico': 'fi-bus',
+        'Centros Comerciales': 'fi-shopping-bag',
+        'Colegios': 'fi-school',
+        'Hospitales': 'fi-hospital'
+      };
+      
+      return iconMap[serviceName] || 'fi-circle';
+    }
+  
 </script>
 
 <template>
@@ -339,56 +381,26 @@ watch (
         
         <!-- Amenities-->
         <div class="mb-4 pb-md-3">
-          <h3 class="h4">Servicios</h3>
-          <ul
-            class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1 text-nowrap"
-          >
-            <li class="col"><i class="fi-wifi mt-n1 me-2 fs-lg align-middle"></i>WiFi</li>
-            <li class="col"><i class="fi-thermometer mt-n1 me-2 fs-lg align-middle"></i>Heating</li>
-            <li class="col"><i class="fi-dish mt-n1 me-2 fs-lg align-middle"></i>Dishwasher</li>
-            <li class="col">
-              <i class="fi-parking mt-n1 me-2 fs-lg align-middle"></i>Parking place
-            </li>
-            <li class="col">
-              <i class="fi-snowflake mt-n1 me-2 fs-lg align-middle"></i>Air conditioning
-            </li>
-            <li class="col"><i class="fi-iron mt-n1 me-2 fs-lg align-middle"></i>Iron</li>
-            <li class="col"><i class="fi-tv mt-n1 me-2 fs-lg align-middle"></i>TV</li>
-            <li class="col"><i class="fi-laundry mt-n1 me-2 fs-lg align-middle"></i>Laundry</li>
-            <li class="col">
-              <i class="fi-cctv mt-n1 me-2 fs-lg align-middle"></i>Security cameras
-            </li>
-          </ul>
-          <div class="collapse" id="seeMoreAmenities">
-            <ul
-              class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1 text-nowrap"
-            >
-              <li class="col">
-                <i class="fi-no-smoke mt-n1 me-2 fs-lg align-middle"></i>No smocking
-              </li>
-              <li class="col"><i class="fi-pet mt-n1 me-2 fs-lg align-middle"></i>Cats</li>
-              <li class="col">
-                <i class="fi-swimming-pool mt-n1 me-2 fs-lg align-middle"></i>Swimming pool
-              </li>
-              <li class="col">
-                <i class="fi-double-bed mt-n1 me-2 fs-lg align-middle"></i>Double bed
-              </li>
-              <li class="col"><i class="fi-bed mt-n1 me-2 fs-lg align-middle"></i>Single bed</li>
-            </ul>
-          </div>
-          <a
-            class="collapse-label collapsed"
-            data-bs-target="#seeMoreAmenities"
-            data-bs-toggle="collapse"
-            data-bs-label-collapsed="Show more"
-            data-bs-label-expanded="Show less"
-            role="button"
-            aria-expanded="false"
-            aria-controls="seeMoreAmenities"
-          ></a>
-        </div>
-      </div>
-      
+  <h3 class="h4">Servicios</h3>
+  <ul class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1 text-nowrap">
+    <template v-for="(specification, index) in getAvailableServices()" :key="index">
+      <li class="col" v-if="specification.value !== false && specification.value !== 0">
+        <i :class="getIconClass(specification.name)" class="mt-n1 me-2 fs-lg align-middle"></i>
+        {{ specification.name }}
+        <span v-if="typeof specification.value === 'string' || (typeof specification.value === 'number' && specification.value > 1)" class="text-muted">
+          ({{ specification.value }})
+        </span>
+      </li>
+    </template>
+  </ul>
+  
+ <!-- Mostrar mensaje si no hay servicios disponibles-->
+  <div v-if="getAvailableServices().length === 0" class="text-muted">
+    No hay servicios disponibles
+  </div>
+  </div>
+</div>
+
       <!-- Sidebar-->
       <aside class="col-lg-4 col-md-5 ms-lg-auto pb-1">
         <!-- Contact card-->
@@ -402,8 +414,8 @@ watch (
                   width="60"
                   alt="Avatar"
                 />
-                <h5 class="mb-1">Floyd Miles</h5>
-                <div class="mb-1">
+                <h5 class="mb-1">{{ propertyStore?.dataProperty?.profile?.user?.name}} {{ propertyStore?.dataProperty?.profile?.user?.last_name}}</h5>
+                <!-- <div class="mb-1">
                   <span class="star-rating"
                     ><i class="star-rating-icon fi-star-filled active"></i
                     ><i class="star-rating-icon fi-star-filled active"></i
@@ -411,8 +423,8 @@ watch (
                     ><i class="star-rating-icon fi-star-filled active"></i
                     ><i class="star-rating-icon fi-star-filled active"></i></span
                   ><span class="ms-1 fs-sm text-muted">(45 reviews)</span>
-                </div>
-                <p class="text-body">Imperial Property Group Agent</p>
+                </div> -->
+                <p class="text-body">{{ propertyStore?.dataProperty?.profile?.role?.description}}</p>
               </router-link>
               <div class="ms-4 flex-shrink-0">
                 <a
@@ -429,13 +441,13 @@ watch (
             <ul class="list-unstyled border-bottom mb-4 pb-4">
               <li>
                 <a class="nav-link fw-normal p-0" href="tel:3025550107"
-                  ><i class="fi-phone mt-n1 me-2 align-middle opacity-60"></i>(302) 555-0107</a
+                  ><i class="fi-phone mt-n1 me-2 align-middle opacity-60"></i>{{ propertyStore?.dataProperty?.profile?.user?.phone_number}}</a
                 >
               </li>
               <li>
                 <a class="nav-link fw-normal p-0" href="mailto:floyd_miles@email.com"
                   ><i class="fi-mail mt-n1 me-2 align-middle opacity-60"></i
-                  >floyd_miles@email.com</a
+                  >{{ propertyStore?.dataProperty?.profile?.user?.email}}</a
                 >
               </li>
             </ul>
