@@ -17,7 +17,6 @@ export interface User {
   role: number
   created_at?: string
   updated_at?: string
-  data?: any
 }
 
 export interface RegisterData {
@@ -29,6 +28,7 @@ export interface RegisterData {
   phone_number: string
   role: number,
   code?: string
+  codigo?: string
 }
 
 export interface LoginData {
@@ -90,7 +90,7 @@ const isAuth = ref(false)
     error.value = null
 
     try {
-      const response = await api.post<AuthResponse>('/auth/register', registerData)
+      const response = await api.post('/auth/register', registerData)
       registerDataUser.value = registerData
       sendCode(response.data.email)
       console.log(' Usuario registrado exitosamente:', response.user)
@@ -142,12 +142,12 @@ const isAuth = ref(false)
     }
   }
 
-  const verifyCode = async (code: RegisterData): Promise<void> => {
+  const verifyCode = async (code: string): Promise<void> => {
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await api.post<AuthResponse>('/email/verify-code/', {
+      const response = await api.post('/email/verify-code/', {
         email: registerDataUser.value?.email,
         code: code,
         password: registerDataUser.value?.password,
@@ -157,14 +157,20 @@ const isAuth = ref(false)
         toast.success('Registro exitoso, por favor inicia sesión');
 
         const signupModalElement = document.getElementById('signup-modal');
-        const signupModal = Modal.getInstance(signupModalElement) || new Modal(signupModalElement!);
-        signupModal.hide();
+        if (signupModalElement) {
+          const signupModal = Modal.getInstance(signupModalElement) || new Modal(signupModalElement!);
+          signupModal.hide();
+        }
 
         setTimeout(() => {
-          registerDataUser.value.password = ''
+          if (registerDataUser.value) {
+            registerDataUser.value.password = ''
+          }
           const signinModalElement = document.getElementById('signin-modal');
-          const signinModal = Modal.getInstance(signinModalElement) || new Modal(signinModalElement!);
-          signinModal.show();
+          if (signinModalElement) {
+            const signinModal = Modal.getInstance(signinModalElement) || new Modal(signinModalElement!);
+            signinModal.show();
+          }
         }, 300);
       }
     } catch (err: any) {
@@ -269,9 +275,10 @@ const isAuth = ref(false)
     error.value = null
 
     try {
-      const response = await api.get<{ user: User }>('/v1/auth/user/me/')
-      user.value = response.data.user // Fixed: access the user property from the response
-      perfilStore.setProfile(response.data.user)
+      const response = await api.get('/v1/auth/user/me/')
+     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      user.value = response.data
+      perfilStore.setProfile(response.data)
       console.log(' Perfil obtenido:', user.value)
 
     } catch (err: any) {

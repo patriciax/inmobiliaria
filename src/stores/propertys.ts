@@ -179,7 +179,7 @@ export const usePropertyStore = defineStore('property', () => {
     error.value = null  
 
     try {
-      const response = await api.get<UserData>(`/public/properties/${id}`)
+      const response = await api.get(`/public/properties/${id}`)
       dataProperty.value = response.data
       return response.data
     } catch (err: any) {
