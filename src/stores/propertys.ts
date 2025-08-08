@@ -24,10 +24,17 @@ export interface UserData {
   }
   images?: {
     id: number
-    url: string
+    url: {
+      full: string
+      medium?: string
+      thumbnail?: string
+    }
     property_id: number
     created_at?: string
     updated_at?: string
+    publish?: boolean
+    sort_by?: number
+    description?: string
   }[]
   address?: {
     id: number
@@ -49,7 +56,34 @@ export interface UserData {
   features?: string[]
   property_type?: string
   property_status?: string
-  
+  details?: {
+    video_url?: string
+    view360_url?: string
+    map_url?: string
+    description?: string
+    [key: string]: any
+  }
+  // Property-specific fields
+  title?: string
+  location?: string
+  rooms?: number
+  parkings?: number
+  visits?: number
+  observations?: string
+  notes?: string
+  type?: {
+    id: number
+    name: string
+    description?: string
+    created_at?: string
+    updated_at?: string
+  }
+  year?: number
+  pets?: boolean
+  badge?: string[]
+  beds?: number
+  baths?: number
+  cars?: number
 }
 
 export interface PaginationData {

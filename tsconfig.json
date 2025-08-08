@@ -7,7 +7,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "allowJs": true,
-    "types": ["vite/client"],
+    "types": ["vite/client", "@types/leaflet"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",

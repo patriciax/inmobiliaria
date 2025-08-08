@@ -9,10 +9,10 @@ import lgThumbnail from 'lightgallery/plugins/thumbnail'
 import lgZoom from 'lightgallery/plugins/zoom'
 
 // Importaciones necesarias para Leaflet
-import L from 'leaflet'
+import L from 'leaflet' 
 
 // Solución para los iconos de Leaflet
-delete L.Icon.Default.prototype._getIconUrl
+delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -47,22 +47,22 @@ const breadcrumbData = ref([
 ])
 
 const tabs = [
-  { id: 'fotos', label: 'Fotos' , activeTab: propertyStore?.dataProperty?.images?.length > 0 },
-  { id: 'video', label: 'Video', activeTab: propertyStore?.dataProperty?.details?.video_url },
-  { id: 'tour', label: 'Tour', activeTab: propertyStore?.dataProperty?.details?.view360_url},
-  { id: 'mapa', label: 'Mapa', activeTab: propertyStore?.dataProperty?.details?.map_url }
+  { id: 'fotos', label: 'Fotos' , activeTab: (propertyStore?.dataProperty?.images?.length ?? 0) > 0 },
+  { id: 'video', label: 'Video', activeTab: !!propertyStore?.dataProperty?.details?.video_url },
+  { id: 'tour', label: 'Tour', activeTab: !!propertyStore?.dataProperty?.details?.view360_url},
+  { id: 'mapa', label: 'Mapa', activeTab: !!propertyStore?.dataProperty?.details?.map_url }
 ];
 
 const activeTab = ref('fotos');
 
 // Variables para el mapa
 const mapReady = ref(false)
-const mapCenter = ref([0, 0])
+const mapCenter = ref<[number, number]>([0, 0])
 const mapZoom = ref(15)
 
 onMounted(async() => {
  await propertyStore.getPropertyById(Number(router.currentRoute.value.params.id));
- title.value = propertyStore.dataProperty.title;
+ title.value = propertyStore.dataProperty?.title || '';
  breadcrumbData.value[0].subitems[1].title = title.value;
  
  // Configurar coordenadas del mapa
@@ -81,13 +81,13 @@ const publishedImages = computed(() => {
   
   return propertyStore.dataProperty.images
     .filter(image => image.publish)
-    .sort((a, b) => a.sort_by - b.sort_by)
+    .sort((a, b) => (a.sort_by || 0) - (b.sort_by || 0))
 })
 
 // Método para asignar las clases CSS del grid basado en el índice
-const getGridClass = (index) => {
+const getGridClass = (index: number) => {
   const classes = ['div1', 'div2', 'div3', 'div4', 'div5', 'div6']
-  const additionalClasses = {
+  const additionalClasses: { [key: number]: string } = {
     1: 'mb-2 mb-md-3', // Para la segunda imagen (índice 1)
   }
   
@@ -107,7 +107,7 @@ watch (
   async (newId) => {
     if (newId) {
       await propertyStore.getPropertyById(Number(newId));
-      title.value = propertyStore.dataProperty.title;
+      title.value = propertyStore.dataProperty?.title || '';
       
       // Actualizar coordenadas del mapa
       if (propertyStore.dataProperty?.latitude && propertyStore.dataProperty?.longitude) {
@@ -327,7 +327,7 @@ watch (
         <div class="mb-4 pb-md-3">
           <h3 class="h4">Detalles de la propiedad</h3>
           <ul class="list-unstyled mb-0">
-            <li><b>Type: </b>{{ propertyStore?.dataProperty?.type?.description }}</li>
+            <li><b>Type: </b>{{ propertyStore?.dataProperty?.type?.name }}</li>
             <li><b>Area: </b> {{ propertyStore?.dataProperty?.area }} sq.m</li>
             <li><b>Construido: </b>{{ propertyStore?.dataProperty?.year || 'Sin información' }}</li>
             <li><b>Dormitorios: </b>{{ propertyStore?.dataProperty?.rooms }}</li>

@@ -17,6 +17,7 @@ export interface User {
   role: number
   created_at?: string
   updated_at?: string
+  data?: any
 }
 
 export interface RegisterData {
@@ -203,8 +204,10 @@ const isAuth = ref(false)
       console.log(' Token guardado:', response.token.substring(0, 20) + '...')
 
       const signinModalElement = document.getElementById('signin-modal');
-      const signinModal = Modal.getInstance(signinModalElement) || new Modal(signinModalElement!);
-      signinModal.hide();
+      if (signinModalElement) {
+        const signinModal = Modal.getInstance(signinModalElement) || new Modal(signinModalElement);
+        signinModal.hide();
+      }
 
       isAuth.value = true
       // Obtener perfil actualizado del servidor
@@ -241,7 +244,7 @@ const isAuth = ref(false)
     } finally {
       // Limpiar estado local
       user.value = null
-      token.value = null
+      token.value = ''
       error.value = null
       isAuth.value = false
 
@@ -267,8 +270,8 @@ const isAuth = ref(false)
 
     try {
       const response = await api.get<{ user: User }>('/v1/auth/user/me/')
-      user.value = response.data // Cambié esto para que actualice el user en el store
-      perfilStore.setProfile(response.data)
+      user.value = response.data.user // Fixed: access the user property from the response
+      perfilStore.setProfile(response.data.user)
       console.log(' Perfil obtenido:', user.value)
 
     } catch (err: any) {
@@ -302,7 +305,7 @@ const isAuth = ref(false)
 
   const clear = (): void => {
     user.value = null
-    token.value = null
+    token.value = ''
     isLoading.value = false
     error.value = null
     // clearAuthToken()
@@ -336,6 +339,6 @@ const isAuth = ref(false)
   persist: {
     storage: localStorage,
     key: 'auth',
-    paths: ['user', 'token']
+    pick: ['user', 'token']
   }
 })
