@@ -1,10 +1,13 @@
 <script lang="ts" setup>
 import simplebar from 'simplebar-vue';
 import Slider from '@vueform/slider'
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 import 'simplebar/dist/simplebar.min.css';
+import { useFiltersStore } from '@/stores/ubications';
+import { usePropertyStore } from '@/stores/propertys';
 
+const propertyStore = usePropertyStore();
 
 const props = defineProps({
     slider: {
@@ -18,6 +21,100 @@ const props = defineProps({
 });
 
 const pricePerMonth = ref(props.slider.defaultValue);
+const selectedCountryId = ref(null);
+
+const filterStore = useFiltersStore();
+const idTYpeProperty = ref(null);
+onMounted(async () => {
+ await   filterStore.getCountries();
+ await   filterStore.getTypeProperty();
+});
+
+const filterByCountry = (countryId: number | string) => {
+    const id = typeof countryId === 'string' ? Number(countryId) : countryId;
+    if (isNaN(id) || id <= 0) {
+        console.log('Invalid country ID:', countryId);
+        return;
+    }
+    console.log('Filtering by country ID:', id);
+    propertyStore.getPropertiesPublic(1, 10, 1, id);
+}
+
+const filterByTypeProperty = (typePropertyId: number | string) => {
+    const id = typeof typePropertyId === 'string' ? Number(typePropertyId) : typePropertyId;
+    if (isNaN(id) || id <= 0) {
+        console.log('Invalid type property ID:', typePropertyId);
+        return;
+    }
+    idTYpeProperty.value = id;
+    console.log('Filtering by type property ID:', id);
+    propertyStore.getPropertiesPublic(1, 10, id, selectedCountryId.value);
+}
+
+
+// Variables reactivas
+const selectedBedrooms = ref(null) // Valor por defecto
+const selectedBathrooms = ref(null)
+const selectedParking = ref(null)
+const showDebug = ref(false) // Cambiar a true para ver los valores seleccionados
+
+// Función para llamar el servicio de baños
+const getBathrooms = async () => {
+  if (!selectedBathrooms.value) return
+  
+  try {
+    console.log('Llamando servicio con:', selectedBathrooms.value, 'baños')
+    
+    // Aquí haces tu llamada al servicio
+    // Ejemplo:
+    // const response = await yourService.getBathrooms(selectedBathrooms.value)
+    // console.log('Respuesta del servicio:', response)
+    
+    // Simulación de llamada al servicio
+    const response = await     propertyStore.getPropertiesPublic(1, 10, idTYpeProperty.value, selectedCountryId.value, selectedBathrooms.value);
+
+    console.log('Datos recibidos:', response)
+    
+  } catch (error) {
+    console.error('Error al llamar el servicio:', error)
+  }
+}
+
+// Función para manejar cambios en habitaciones
+const onBedroomsChange =async () => {
+    try {
+   await     propertyStore.getPropertiesPublic(1, 10, idTYpeProperty.value, selectedCountryId.value, selectedBathrooms.value, selectedParking.value, selectedBedrooms.value);
+
+    
+  } catch (error) {
+    console.error('Error al llamar el servicio:', error)
+  }
+}
+
+// Función para manejar cambios en parqueaderos
+const onParkingChange = async () => {
+  console.log('Parqueaderos seleccionados:', selectedParking.value)
+  // Aquí puedes agregar lógica adicional si necesitas
+  try {
+    console.log('Llamando servicio con:', selectedBathrooms.value, 'baños')
+    
+    // Aquí haces tu llamada al servicio
+    // Ejemplo:
+    // const response = await yourService.getBathrooms(selectedBathrooms.value)
+    // console.log('Respuesta del servicio:', response)
+    
+    // Simulación de llamada al servicio
+    const response = await     propertyStore.getPropertiesPublic(1, 10, idTYpeProperty.value, selectedCountryId.value, selectedBathrooms.value, selectedParking.value);
+
+    console.log('Datos recibidos:', response)
+    
+  } catch (error) {
+    console.error('Error al llamar el servicio:', error)
+  }
+  
+}
+
+
 
 </script>
 
@@ -43,62 +140,19 @@ const pricePerMonth = ref(props.slider.defaultValue);
             <div class="offcanvas-body py-lg-4">
                 <div class="pb-4 mb-2">
                     <h3 class="h6">Ubicación</h3>
-                    <select class="form-select mb-2">
-                        <option value="" disabled>Choose city</option>
-                        <option value="Chicago">Chicago</option>
-                        <option value="Dallas">Dallas</option>
-                        <option value="Los Angeles">Los Angeles</option>
-                        <option value="New York" selected>New York</option>
-                        <option value="San Diego">San Diego</option>
-                    </select>
-                    <select class="form-select">
-                        <option value="" selected disabled>Choose district</option>
-                        <option value="Brooklyn">Brooklyn</option>
-                        <option value="Manhattan">Manhattan</option>
-                        <option value="Staten Island">Staten Island</option>
-                        <option value="The Bronx">The Bronx</option>
-                        <option value="Queens">Queens</option>
+                    <select class="form-select mb-2" v-model="selectedCountryId" @change="filterByCountry(selectedCountryId)">
+                        <option value="" disabled>Selecciona un país</option>
+                        <option v-for="country in filterStore.ubications" :key="country.id" :value="country.country_id">{{ country.country_name }}</option>
                     </select>
                 </div>
                 <div class="pb-4 mb-2">
                     <h3 class="h6">Tipo de propiedad</h3>
                     <simplebar data-simplebar-auto-hide="false" class="overflow-auto" style="height: 11rem;">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="house">
-                            <label class="form-check-label fs-sm" for="house">House</label>
+                        <div class="form-check" v-for="typeProperty in filterStore.listTypeProperty" :key="typeProperty.id" >
+                            <input class="form-check-input" type="checkbox" :id="typeProperty.id" @change="filterByTypeProperty(typeProperty.id)">
+                            <label class="form-check-label fs-sm" :for="typeProperty.id">{{ typeProperty.description }}</label>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="apartment" checked>
-                            <label class="form-check-label fs-sm" for="apartment">Apartment</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="room">
-                            <label class="form-check-label fs-sm" for="room">Room</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="office">
-                            <label class="form-check-label fs-sm" for="office">Office</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="commercial">
-                            <label class="form-check-label fs-sm" for="commercial">Commercial</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="land">
-                            <label class="form-check-label fs-sm" for="land">Land</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="daily">
-                            <label class="form-check-label fs-sm" for="daily">Daily rental</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="new-building">
-                            <label class="form-check-label fs-sm" for="new-building">New building</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="parking-lot">
-                            <label class="form-check-label fs-sm" for="parking-lot">Parking lot</label>
-                        </div>
+                       
                     </simplebar>
                 </div>
                 <div class="pb-4 mb-2">
@@ -119,7 +173,7 @@ const pricePerMonth = ref(props.slider.defaultValue);
                     </div>
 
                 </div>
-                <div class="pb-4 mb-2">
+                <!-- <div class="pb-4 mb-2">
                     <h3 class="h6 pt-1">Camas y baños</h3>
                     <label class="d-block fs-sm mb-1">Habitaciones</label>
                     <div class="btn-group btn-group-sm" role="group" aria-label="Choose number of bedrooms">
@@ -156,7 +210,182 @@ const pricePerMonth = ref(props.slider.defaultValue);
                         <input class="btn-check" type="radio" id="bathrooms-4" name="bathrooms">
                         <label class="btn btn-outline-secondary fw-normal" for="bathrooms-4">4</label>
                     </div>
-                </div>
+                </div> -->
+                <div class="pb-4 mb-2">
+    <h3 class="h6 pt-1">Camas y baños</h3>
+    
+    <!-- Habitaciones -->
+    <label class="d-block fs-sm mb-1">Habitaciones</label>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Choose number of bedrooms">
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="studio" 
+        name="bedrooms" 
+        value="studio"
+        v-model="selectedBedrooms"
+        @change="onBedroomsChange"
+      >
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="bedrooms-1" 
+        name="bedrooms" 
+        value="1"
+        v-model="selectedBedrooms"
+        @change="onBedroomsChange"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="bedrooms-1">1</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="bedrooms-2" 
+        name="bedrooms" 
+        value="2"
+        v-model="selectedBedrooms"
+        @change="onBedroomsChange"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="bedrooms-2">2</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="bedrooms-3" 
+        name="bedrooms" 
+        value="3"
+        v-model="selectedBedrooms"
+        @change="onBedroomsChange"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="bedrooms-3">3</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="bedrooms-4" 
+        name="bedrooms" 
+        value="4+"
+        v-model="selectedBedrooms"
+        @change="onBedroomsChange"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="bedrooms-4">4+</label>
+    </div>
+    
+    <!-- Baños -->
+    <label class="d-block fs-sm pt-2 my-1">Baños</label>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Choose number of bathrooms">
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="bathrooms-1" 
+        name="bathrooms" 
+        value="1"
+        v-model="selectedBathrooms"
+        @change="getBathrooms"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="bathrooms-1">1</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="bathrooms-2" 
+        name="bathrooms" 
+        value="2"
+        v-model="selectedBathrooms"
+        @change="getBathrooms"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="bathrooms-2">2</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="bathrooms-3" 
+        name="bathrooms" 
+        value="3"
+        v-model="selectedBathrooms"
+        @change="getBathrooms"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="bathrooms-3">3</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="bathrooms-4" 
+        name="bathrooms" 
+        value="4"
+        v-model="selectedBathrooms"
+        @change="getBathrooms"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="bathrooms-4">4</label>
+    </div>
+    
+    <!-- Parqueaderos -->
+    <label class="d-block fs-sm pt-2 my-1">Parqueaderos</label>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Choose number of parking spots">
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="parking-0" 
+        name="parking" 
+        value="0"
+        v-model="selectedParking"
+        @change="onParkingChange"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="parking-0">0</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="parking-1" 
+        name="parking" 
+        value="1"
+        v-model="selectedParking"
+        @change="onParkingChange"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="parking-1">1</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="parking-2" 
+        name="parking" 
+        value="2"
+        v-model="selectedParking"
+        @change="onParkingChange"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="parking-2">2</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="parking-3" 
+        name="parking" 
+        value="3"
+        v-model="selectedParking"
+        @change="onParkingChange"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="parking-3">3</label>
+      
+      <input 
+        class="btn-check" 
+        type="radio" 
+        id="parking-4" 
+        name="parking" 
+        value="4+"
+        v-model="selectedParking"
+        @change="onParkingChange"
+      >
+      <label class="btn btn-outline-secondary fw-normal" for="parking-4">4+</label>
+    </div>
+    
+    <!-- Información de debug (opcional) -->
+    <div class="mt-3 small text-muted" v-if="showDebug">
+      <p>Habitaciones seleccionadas: {{ selectedBedrooms }}</p>
+      <p>Baños seleccionados: {{ selectedBathrooms }}</p>
+      <p>Parqueaderos seleccionados: {{ selectedParking }}</p>
+    </div>
+  </div>
                 <!-- <div class="pb-4 mb-2">
                     <h3 class="h6 pt-1">Square metres</h3>
                     <div class="d-flex align-items-center">

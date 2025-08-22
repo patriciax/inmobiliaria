@@ -48,13 +48,13 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     // Log para desarrollo
-    if (import.meta.env.MODE === 'development') {
-      console.log('✅ Response:', {
-        status: response.status,
-        url: response.config.url,
-        data: response.data
-      })
-    }
+    // if (import.meta.env.MODE === 'development') {
+    //   console.log('✅ Response:', {
+    //     status: response.status,
+    //     url: response.config.url,
+    //     data: response.data
+    //   })
+    // }
     
     return response
   },

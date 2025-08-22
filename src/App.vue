@@ -9,3 +9,14 @@
   <router-view v-else />
 
 </template>
+<script setup>
+import { useCountryStore } from '@/stores/country';
+import { onMounted } from 'vue';
+
+const countryStore = useCountryStore();
+
+onMounted(async () => {
+  await countryStore.getCountry();
+  
+});
+</script>

@@ -150,7 +150,8 @@ const handlePageChange = async (page: number) => {
                                         <i class="fi-heart"></i>
                                     </button>
                                 </div>
-                                <Swiper v-if="property.images" :slidesPerView="1" :loop="true">
+                                <Swiper v-if="property.images" :slidesPerView="1" :loop="true"                     :initialSlide="property.images.length - 1">
+                                    >
                                     <SwiperSlide v-for="(image, index) in property.images" :key="index">
                                         <img :src="image.url.thumbnail" alt="Image" @error="imageNotFound" class="w-100 d-block h-20" />
                                     </SwiperSlide>

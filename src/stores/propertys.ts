@@ -141,15 +141,15 @@ export const usePropertyStore = defineStore('property', () => {
     }
   }
 
-  const getPropertiesPublic = async (page: number = 1, pageSize: number = 10, categoryId?: number): Promise<UserData[] | null> => {
+  const getPropertiesPublic = async (page: number = 1, pageSize: number = 10, categoryId?: number, countryId?: number,bathrooms?: number,parkings?: number,rooms?: number): Promise<UserData[] | null> => {
+    console.log('getPropertiesPublic called with:', { page, pageSize, categoryId, countryId, bathrooms, parkings, rooms })
     isLoading.value = true
     error.value = null
-
     try {
-      const response = await api.get<PropertyResponse>(`/public/properties/all/?page=${page}&pageSize=${pageSize}${categoryId ? `&category=${categoryId}` : ''}`)
+      const response = await api.get<PropertyResponse>(`/public/properties/all/?page=${page}&pageSize=${pageSize}${categoryId ? `&category=${categoryId}` : ''} ${countryId ? `&country=${countryId}` : ''} ${bathrooms ? `&bathrooms=${bathrooms}` : ''}  ${parkings ? `&parkings=${parkings}` : ''} ` + `${rooms ? `&rooms=${rooms}` : ''}`)
       if (!response.data || response.data.length === 0) {
-        error.value = 'No se encontraron propiedades'
-        toast.error(error.value)
+        // error.value = 'No se encontraron propiedades'
+        // toast.error(error.value)
         return null
       }
       property.value = response.data
@@ -238,8 +238,8 @@ export const usePropertyStore = defineStore('property', () => {
     prevPage,
   }
 }, {
-  persist: {
-    key: 'property',
-    storage: sessionStorage,
-  }
+  // persist: {
+  //   key: 'property',
+  //   storage: sessionStorage,
+  // }
 })
