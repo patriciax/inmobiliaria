@@ -31,9 +31,11 @@ onMounted(async () => {
  await   filterStore.getTypeProperty();
 });
 
-const filterByCountry = (countryId: number | string) => {
+const filterByCountry = (countryId: number | undefined ) => {
     const id = typeof countryId === 'string' ? Number(countryId) : countryId;
-    if (isNaN(id) || id <= 0) {
+    //@ts-ignore
+        if (isNaN(id) || id <= 0 || id === undefined) {
+
         console.log('Invalid country ID:', countryId);
         return;
     }
@@ -43,7 +45,8 @@ const filterByCountry = (countryId: number | string) => {
 
 const filterByTypeProperty = (typePropertyId: number | string) => {
     const id = typeof typePropertyId === 'string' ? Number(typePropertyId) : typePropertyId;
-    if (isNaN(id) || id <= 0) {
+        if (isNaN(id) || id <= 0 || id === undefined) {
+
         console.log('Invalid type property ID:', typePropertyId);
         return;
     }
