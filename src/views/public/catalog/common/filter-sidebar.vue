@@ -21,10 +21,11 @@ const props = defineProps({
 });
 
 const pricePerMonth = ref(props.slider.defaultValue);
-const selectedCountryId = ref(null);
+const selectedCountryId = ref<number | undefined>(undefined); 
 
 const filterStore = useFiltersStore();
-const idTYpeProperty = ref(null);
+const idTYpeProperty = ref<number | undefined>(undefined);
+
 onMounted(async () => {
  await   filterStore.getCountries();
  await   filterStore.getTypeProperty();
@@ -53,9 +54,9 @@ const filterByTypeProperty = (typePropertyId: number | string) => {
 
 
 // Variables reactivas
-const selectedBedrooms = ref(null) // Valor por defecto
-const selectedBathrooms = ref(null)
-const selectedParking = ref(null)
+const selectedBedrooms = ref<number | undefined>(undefined); // Valor por defecto
+const selectedBathrooms =ref<number | undefined>(undefined);
+const selectedParking = ref<number | undefined>(undefined);
 const showDebug = ref(false) // Cambiar a true para ver los valores seleccionados
 
 // Función para llamar el servicio de baños
@@ -140,6 +141,7 @@ const onParkingChange = async () => {
             <div class="offcanvas-body py-lg-4">
                 <div class="pb-4 mb-2">
                     <h3 class="h6">Ubicación</h3>
+                
                     <select class="form-select mb-2" v-model="selectedCountryId" @change="filterByCountry(selectedCountryId)">
                         <option value="" disabled>Selecciona un país</option>
                         <option v-for="country in filterStore.ubications" :key="country.id" :value="country.country_id">{{ country.country_name }}</option>
