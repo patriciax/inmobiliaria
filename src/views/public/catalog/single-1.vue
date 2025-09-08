@@ -7,70 +7,79 @@ import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
 import lgThumbnail from 'lightgallery/plugins/thumbnail'
 import lgZoom from 'lightgallery/plugins/zoom'
-
+import 'lightgallery/css/lg-thumbnail.css'
 // Importaciones necesarias para Leaflet
-import L from 'leaflet' 
+import L from 'leaflet'
 
 // Solución para los iconos de Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png'
 })
 
 // If you are using scss you can skip the css imports below and use scss instead
 import 'lightgallery/scss/lightgallery.scss'
-import { usePropertyStore } from '@/stores/propertys';
+import { usePropertyStore } from '@/stores/propertys'
 import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
 
 const authStore = useAuthStore()
-const propertyStore = usePropertyStore();
+const propertyStore = usePropertyStore()
 
 const pluginsData = [lgThumbnail, lgZoom]
-const title=ref('Detalle de propiedad')
+const title = ref('Detalle de propiedad')
 const breadcrumbData = ref([
   {
     title: 'Inicio',
     link: '/',
     subitems: [
       {
-        title: propertyStore?.dataProperty?.category_id === 2 ? 'Inmuebles en alquiler' : 'Inmuebles en venta',
+        title:
+          propertyStore?.dataProperty?.category_id === 2
+            ? 'Inmuebles en alquiler'
+            : 'Inmuebles en venta',
         link: propertyStore?.dataProperty?.category_id === 2 ? '/rent' : '/'
       },
       {
-        title: title.value,
+        title: title.value
       }
     ]
   }
 ])
 
 const tabs = [
-  { id: 'fotos', label: 'Fotos' , activeTab: (propertyStore?.dataProperty?.images?.length ?? 0) > 0 },
+  {
+    id: 'fotos',
+    label: 'Fotos',
+    activeTab: (propertyStore?.dataProperty?.images?.length ?? 0) > 0
+  },
   { id: 'video', label: 'Video', activeTab: !!propertyStore?.dataProperty?.details?.video_url },
-  { id: 'tour', label: 'Tour', activeTab: !!propertyStore?.dataProperty?.details?.view360_url},
-  { id: 'mapa', label: 'Mapa', activeTab: !!propertyStore?.dataProperty?.details?.map_url }
-];
+  { id: 'tour', label: 'Tour', activeTab: !!propertyStore?.dataProperty?.details?.view360_url },
+  { id: 'mapa', label: 'Mapa', activeTab: !!propertyStore?.dataProperty?.details?.map_url },
+  { id: 'streetview', label: 'Street View' },
 
-const activeTab = ref('fotos');
+]
+
+const activeTab = ref('fotos')
 
 // Variables para el mapa
 const mapReady = ref(false)
 const mapCenter = ref<[number, number]>([0, 0])
 const mapZoom = ref(15)
 
-onMounted(async() => {
- await propertyStore.getPropertyById(Number(router.currentRoute.value.params.id));
- title.value = propertyStore.dataProperty?.title || '';
- breadcrumbData.value[0].subitems[1].title = title.value;
- 
- // Configurar coordenadas del mapa
- if (propertyStore.dataProperty?.latitude && propertyStore.dataProperty?.longitude) {
-   mapCenter.value = [propertyStore.dataProperty.latitude, propertyStore.dataProperty.longitude]
-   mapReady.value = true
- }
-});
+onMounted(async () => {
+  await propertyStore.getPropertyById(Number(router.currentRoute.value.params.id))
+  title.value = propertyStore.dataProperty?.title || ''
+  breadcrumbData.value[0].subitems[1].title = title.value
+
+  // Configurar coordenadas del mapa
+  if (propertyStore.dataProperty?.latitude && propertyStore.dataProperty?.longitude) {
+    mapCenter.value = [propertyStore.dataProperty.latitude, propertyStore.dataProperty.longitude]
+    mapReady.value = true
+  }
+})
 
 // Computed para obtener las imágenes publicadas y ordenadas
 const publishedImages = computed(() => {
@@ -78,9 +87,9 @@ const publishedImages = computed(() => {
   if (!propertyStore.dataProperty?.images || !Array.isArray(propertyStore.dataProperty.images)) {
     return []
   }
-  
+
   return propertyStore.dataProperty.images
-    .filter(image => image.publish)
+    .filter((image) => image.publish)
     .sort((a, b) => (a.sort_by || 0) - (b.sort_by || 0))
 })
 
@@ -88,12 +97,12 @@ const publishedImages = computed(() => {
 const getGridClass = (index: number) => {
   const classes = ['div1', 'div2', 'div3', 'div4', 'div5', 'div6']
   const additionalClasses: { [key: number]: string } = {
-    1: 'mb-2 mb-md-3', // Para la segunda imagen (índice 1)
+    1: 'mb-2 mb-md-3' // Para la segunda imagen (índice 1)
   }
-  
+
   const baseClass = classes[index % classes.length] || 'div1'
   const extraClass = additionalClasses[index] || ''
-  
+
   return `${baseClass} ${extraClass}`.trim()
 }
 
@@ -102,64 +111,121 @@ const onMapReady = () => {
   console.log('Mapa listo')
 }
 
-watch (
+watch(
   () => router.currentRoute.value.params.id,
   async (newId) => {
     if (newId) {
-      await propertyStore.getPropertyById(Number(newId));
-      title.value = propertyStore.dataProperty?.title || '';
-      
+      await propertyStore.getPropertyById(Number(newId))
+      title.value = propertyStore.dataProperty?.title || ''
+
       // Actualizar coordenadas del mapa
       if (propertyStore.dataProperty?.latitude && propertyStore.dataProperty?.longitude) {
-        mapCenter.value = [propertyStore.dataProperty.latitude, propertyStore.dataProperty.longitude]
+        mapCenter.value = [
+          propertyStore.dataProperty.latitude,
+          propertyStore.dataProperty.longitude
+        ]
         mapReady.value = true
       }
     }
   }
-);
-
+)
 
 const getAvailableServices = () => {
-      const specifications = propertyStore?.dataProperty?.details?.specifications || [];
-      // Filtrar solo los servicios que están disponibles (value !== false && value !== 0)
-      return specifications.filter((spec: any) => 
-        spec.value !== false && 
-        spec.value !== 0 && 
-        spec.value !== null && 
-        spec.value !== undefined
-      );
-    }
-    
+  const specifications = propertyStore?.dataProperty?.details?.specifications || []
+  // Filtrar solo los servicios que están disponibles (value !== false && value !== 0)
+  return specifications.filter(
+    (spec: any) =>
+      spec.value !== false && spec.value !== 0 && spec.value !== null && spec.value !== undefined
+  )
+}
+
 const getIconClass = (serviceName: string) => {
-      const iconMap: { [key: string]: string } = {
-        'Piscina': 'fi-swimming-pool',
-        'Zona BBQ': 'fi-grill',
-        'Jardin Privado': 'fi-plant',
-        'Parque Infantil': 'fi-playground',
-        'Cancha Deportiva': 'fi-sport',
-        'Terraza': 'fi-terrace',
-        'Balcon': 'fi-balcony',
-        'Chimenea': 'fi-fire',
-        'Cocina Integral': 'fi-dish',
-        'Aire Acondicionado': 'fi-snowflake',
-        'Closets': 'fi-closet',
-        'Piso Laminado': 'fi-floor',
-        'Gimnasio': 'fi-gym',
-        'Ascensores': 'fi-elevator',
-        'Porteria 24h': 'fi-security',
-        'CCTV': 'fi-cctv',
-        'Wifi': 'fi-wifi',
-        'Servicio Domestico': 'fi-cleaning',
-        'Parques cercanos': 'fi-park',
-        'Transporte Publico': 'fi-bus',
-        'Centros Comerciales': 'fi-shopping-bag',
-        'Colegios': 'fi-school',
-        'Hospitales': 'fi-hospital'
-      };
-      
-      return iconMap[serviceName] || 'fi-circle';
-    }
-  
+  const iconMap: { [key: string]: string } = {
+    Piscina: 'fi-swimming-pool',
+    'Zona BBQ': 'fi-grill',
+    'Jardin Privado': 'fi-plant',
+    'Parque Infantil': 'fi-playground',
+    'Cancha Deportiva': 'fi-sport',
+    Terraza: 'fi-terrace',
+    Balcon: 'fi-balcony',
+    Chimenea: 'fi-fire',
+    'Cocina Integral': 'fi-dish',
+    'Aire Acondicionado': 'fi-snowflake',
+    Closets: 'fi-closet',
+    'Piso Laminado': 'fi-floor',
+    Gimnasio: 'fi-gym',
+    Ascensores: 'fi-elevator',
+    'Porteria 24h': 'fi-security',
+    CCTV: 'fi-cctv',
+    Wifi: 'fi-wifi',
+    'Servicio Domestico': 'fi-cleaning',
+    'Parques cercanos': 'fi-park',
+    'Transporte Publico': 'fi-bus',
+    'Centros Comerciales': 'fi-shopping-bag',
+    Colegios: 'fi-school',
+    Hospitales: 'fi-hospital'
+  }
+
+  return iconMap[serviceName] || 'fi-circle'
+}
+
+// const  getYouTubeEmbedUrl = function(url : string) {
+//   if (!url) return '';
+
+//   // Extraer el ID del video de diferentes formatos de URL de YouTube
+//   let videoId = '';
+
+//   if (url.includes('youtube.com/watch?v=')) {
+//     videoId = url.split('youtube.com/watch?v=')[1].split('&')[0];
+//   } else if (url.includes('youtu.be/')) {
+//     videoId = url.split('youtu.be/')[1].split('?')[0];
+//   } else if (url.includes('youtube.com/embed/')) {
+//     videoId = url.split('youtube.com/embed/')[1].split('?')[0];
+//   }
+
+//   return `https://www.youtube.com/embed/${videoId}`;
+// }
+const isYouTubeUrl = function (url: string) {
+  return url.includes('youtube.com') || url.includes('youtu.be')
+}
+const isVimeoUrl = function (url: string) {
+  return url.includes('vimeo.com')
+}
+
+const isDirectVideoUrl = function (url: string) {
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.avi', '.mov', '.wmv', '.flv']
+  return videoExtensions.some((ext) => url.toLowerCase().includes(ext))
+}
+
+const getYouTubeEmbedUrl = function (url: string) {
+  if (!url) return ''
+
+  let videoId = ''
+
+  if (url.includes('youtube.com/watch?v=')) {
+    videoId = url.split('youtube.com/watch?v=')[1].split('&')[0]
+  } else if (url.includes('youtu.be/')) {
+    videoId = url.split('youtu.be/')[1].split('?')[0]
+  } else if (url.includes('youtube.com/embed/')) {
+    videoId = url.split('youtube.com/embed/')[1].split('?')[0]
+  }
+
+  return `https://www.youtube.com/embed/${videoId}`
+}
+
+const getVimeoEmbedUrl = function (url: string) {
+  if (!url) return ''
+
+  let videoId = ''
+
+  if (url.includes('vimeo.com/')) {
+    videoId = url.split('vimeo.com/')[1].split('?')[0]
+  }
+
+  return `https://player.vimeo.com/video/${videoId}`
+}
+
+
 </script>
 
 <template>
@@ -187,7 +253,9 @@ const getIconClass = (serviceName: string) => {
               <b class="me-1">{{ propertyStore?.dataProperty?.parkings }}</b>
               <i class="fi-car mt-n1 lead align-middle text-muted"></i>
             </li>
-            <li><b>{{ propertyStore?.dataProperty?.area }} </b>sq.m</li>
+            <li>
+              <b>{{ propertyStore?.dataProperty?.area }} </b>sq.m
+            </li>
           </ul>
         </div>
       </div>
@@ -195,9 +263,10 @@ const getIconClass = (serviceName: string) => {
       <section>
         <div class="mb-2 border-bottom">
           <h2 class="h3">
-            ${{ propertyStore?.dataProperty?.price }}<span class="d-inline-block ms-1 fs-base fw-normal text-body">/month</span>
+            ${{ propertyStore?.dataProperty?.price
+            }}<span class="d-inline-block ms-1 fs-base fw-normal text-body">/month</span>
           </h2>
-          <p class="text-end"> {{ propertyStore?.dataProperty?.visits }} Vistas</p>
+          <p class="text-end">{{ propertyStore?.dataProperty?.visits }} Vistas</p>
         </div>
 
         <div class="text-nowrap text-end">
@@ -242,7 +311,13 @@ const getIconClass = (serviceName: string) => {
         <div v-show="activeTab === 'fotos'" class="tab-panel">
           <div class="row g-2 g-md-3 gallery" style="min-width: 30rem">
             <div class="parent">
-              <lightgallery :settings="{ speed: 500, plugins: pluginsData }" v-if="publishedImages.length > 0">
+              <lightgallery
+                :style="{
+                  gridTemplateRows: publishedImages.length > 3 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)'
+                }"
+                :settings="{ speed: 500, plugins: pluginsData }"
+                v-if="publishedImages.length > 0"
+              >
                 <a
                   v-for="(image, index) in publishedImages"
                   :key="image.id"
@@ -251,15 +326,14 @@ const getIconClass = (serviceName: string) => {
                   :href="image.url.full"
                   :data-lg-size="image.url.full ? '1600-1067' : undefined"
                 >
-                  <img 
-                    :alt="image.description || `Imagen ${index + 1}`" 
-                    :src="image.url.medium || image.url.full" 
+                  <img
+                    :alt="image.description || `Imagen ${index + 1}`"
+                    :src="image.url.medium || image.url.full"
                     loading="lazy"
                   />
                 </a>
               </lightgallery>
-              
-              <!-- Mensaje cuando no hay imágenes -->
+
               <div v-else class="placeholder-content">
                 <p>No hay imágenes disponibles para esta propiedad</p>
               </div>
@@ -269,19 +343,67 @@ const getIconClass = (serviceName: string) => {
 
         <div v-show="activeTab === 'video'" class="tab-panel">
           <div class="placeholder-content">
-           <video
-              v-if="propertyStore?.dataProperty?.details?.video_url"
-              :src="propertyStore?.dataProperty?.details?.video_url"
+            <!-- Para YouTube -->
+            <iframe
+              v-if="
+                propertyStore?.dataProperty?.details?.video_url &&
+                isYouTubeUrl(propertyStore.dataProperty.details.video_url)
+              "
+              :src="getYouTubeEmbedUrl(propertyStore.dataProperty.details.video_url)"
+              width="100%"
+              height="400"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen
+              class="w-100"
+            ></iframe>
+
+            <!-- Para Vimeo -->
+            <iframe
+              v-else-if="
+                propertyStore?.dataProperty?.details?.video_url &&
+                isVimeoUrl(propertyStore.dataProperty.details.video_url)
+              "
+              :src="getVimeoEmbedUrl(propertyStore.dataProperty.details.video_url)"
+              width="100%"
+              height="400"
+              frameborder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowfullscreen
+              class="w-100"
+            ></iframe>
+
+            <!-- Para archivos de video directo (MP4, WebM, etc.) -->
+            <video
+              v-else-if="
+                propertyStore?.dataProperty?.details?.video_url &&
+                isDirectVideoUrl(propertyStore.dataProperty.details.video_url)
+              "
+              :src="propertyStore.dataProperty.details.video_url"
               controls
               class="w-100"
+              style="height: 400px"
             ></video>
+
+            <!-- Para URLs no reconocidas, intentar como iframe genérico -->
+            <iframe
+              v-else-if="propertyStore?.dataProperty?.details?.video_url"
+              :src="propertyStore.dataProperty.details.video_url"
+              width="100%"
+              height="400"
+              frameborder="0"
+              class="w-100"
+            ></iframe>
+
             <p v-else>No hay video disponible para esta propiedad</p>
           </div>
         </div>
 
         <div v-show="activeTab === 'tour'" class="tab-panel">
           <div class="placeholder-content">
-            <p>Tour virtual interactivo</p>
+            <div :href="propertyStore?.dataProperty?.details?.view360_url">
+              Tour virtual interactivo
+            </div>
           </div>
         </div>
 
@@ -292,21 +414,21 @@ const getIconClass = (serviceName: string) => {
               :zoom="mapZoom"
               :center="mapCenter"
               :use-global-leaflet="false"
-              style="height: 400px; width: 100%; z-index: 1;"
+              style="height: 400px; width: 100%; z-index: 1"
               @ready="onMapReady"
             >
               <LTileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
               />
-              <LMarker 
-                :lat-lng="mapCenter"
-                v-if="mapCenter[0] !== 0 && mapCenter[1] !== 0"
-              >
+              <LMarker :lat-lng="mapCenter" v-if="mapCenter[0] !== 0 && mapCenter[1] !== 0">
                 <LPopup>
                   <div>
-                    <strong>{{ propertyStore.dataProperty?.title || 'Propiedad' }}</strong><br>
-                    <span v-if="propertyStore.dataProperty?.location">{{ propertyStore.dataProperty.location }}</span>
+                    <strong>{{ propertyStore.dataProperty?.title || 'Propiedad' }}</strong
+                    ><br />
+                    <span v-if="propertyStore.dataProperty?.location">{{
+                      propertyStore.dataProperty.location
+                    }}</span>
                   </div>
                 </LPopup>
               </LMarker>
@@ -316,21 +438,34 @@ const getIconClass = (serviceName: string) => {
             <p>No hay coordenadas disponibles para mostrar el mapa</p>
           </div>
         </div>
+
+ 
       </div>
-      
+
       <div class="tabs-header mt-3">
         <template v-for="tab in tabs" :key="tab.id">
-        <button
-        v-if="tab.activeTab"
-          @click="activeTab = tab.id"
-          :class="{ 'active': activeTab === tab.id }"
-          class="tab-button"
-        >
-          {{ tab.label }}
-        </button>
+          <a
+            :href="propertyStore?.dataProperty?.details?.view360_url"
+            target="_blank"
+            v-if="tab.id === 'tour'"
+            class="tab-button"
+          >
+            {{ tab.label }}
+          </a>
 
+          <a :href="propertyStore?.dataProperty?.details?.street_view_url" target="_blank" v-else-if="tab.id === 'streetview'" class="tab-button">
+            {{ tab.label }}
+
+          </a>
+          <button
+            @click="activeTab = tab.id"
+            :class="{ active: activeTab === tab.id }"
+            class="tab-button"
+            v-show="tab.id !== 'tour' && tab.id !== 'streetview'"
+          >
+            {{ tab.label }}
+          </button>
         </template>
-      
       </div>
     </div>
   </div>
@@ -341,12 +476,12 @@ const getIconClass = (serviceName: string) => {
       <div class="col-md-7 mb-md-0 mb-4">
         <span class="badge bg-success me-2 mb-3">Verified</span
         ><span class="badge bg-info me-2 mb-3">New</span>
-        
+
         <!-- Overview-->
         <div class="mb-4 pb-md-3">
           <h3 class="h4">Descripción general</h3>
           <p class="mb-1">
-            {{ propertyStore?.dataProperty?.observations|| 'No hay descripción disponible.' }}
+            {{ propertyStore?.dataProperty?.observations || 'No hay descripción disponible.' }}
           </p>
           <div class="collapse" id="seeMoreOverview" v-if="propertyStore?.dataProperty?.notes">
             <p class="mb-1">
@@ -364,7 +499,7 @@ const getIconClass = (serviceName: string) => {
             aria-controls="seeMoreOverview"
           ></a>
         </div>
-        
+
         <!-- Property Details-->
         <div class="mb-4 pb-md-3">
           <h3 class="h4">Detalles de la propiedad</h3>
@@ -375,31 +510,45 @@ const getIconClass = (serviceName: string) => {
             <li><b>Dormitorios: </b>{{ propertyStore?.dataProperty?.rooms }}</li>
             <li><b>Baños: </b>{{ propertyStore?.dataProperty?.bathrooms }}</li>
             <li><b>Plazas de estacionamiento: </b>{{ propertyStore?.dataProperty?.parkings }}</li>
-            <li><b>Se admiten mascotas: </b>{{ propertyStore?.dataProperty?.pets || 'Sin información' }}</li>
+            <li>
+              <b>Se admiten mascotas: </b
+              >{{ propertyStore?.dataProperty?.pets || 'Sin información' }}
+            </li>
           </ul>
         </div>
-        
+
         <!-- Amenities-->
         <div class="mb-4 pb-md-3">
-  <h3 class="h4">Servicios</h3>
-  <ul class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1 text-nowrap">
-    <template v-for="(specification, index) in getAvailableServices()" :key="index">
-      <li class="col" v-if="specification.value !== false && specification.value !== 0">
-        <i :class="getIconClass(specification.name)" class="mt-n1 me-2 fs-lg align-middle"></i>
-        {{ specification.name }}
-        <span v-if="typeof specification.value === 'string' || (typeof specification.value === 'number' && specification.value > 1)" class="text-muted">
-          ({{ specification.value }})
-        </span>
-      </li>
-    </template>
-  </ul>
-  
- <!-- Mostrar mensaje si no hay servicios disponibles-->
-  <div v-if="getAvailableServices().length === 0" class="text-muted">
-    No hay servicios disponibles
-  </div>
-  </div>
-</div>
+          <h3 class="h4">Servicios</h3>
+          <ul
+            class="list-unstyled row row-cols-lg-3 row-cols-md-2 row-cols-1 gy-1 mb-1 text-nowrap"
+          >
+            <template v-for="(specification, index) in getAvailableServices()" :key="index">
+              <li class="col" v-if="specification.value !== false && specification.value !== 0">
+                <i
+                  :class="getIconClass(specification.name)"
+                  class="mt-n1 me-2 fs-lg align-middle"
+                ></i>
+                {{ specification.name }}
+                <span
+                  v-if="
+                    typeof specification.value === 'string' ||
+                    (typeof specification.value === 'number' && specification.value > 1)
+                  "
+                  class="text-muted"
+                >
+                  ({{ specification.value }})
+                </span>
+              </li>
+            </template>
+          </ul>
+
+          <!-- Mostrar mensaje si no hay servicios disponibles-->
+          <div v-if="getAvailableServices().length === 0" class="text-muted">
+            No hay servicios disponibles
+          </div>
+        </div>
+      </div>
 
       <!-- Sidebar-->
       <aside class="col-lg-4 col-md-5 ms-lg-auto pb-1">
@@ -414,7 +563,10 @@ const getIconClass = (serviceName: string) => {
                   width="60"
                   alt="Avatar"
                 />
-                <h5 class="mb-1">{{ propertyStore?.dataProperty?.profile?.user?.name}} {{ propertyStore?.dataProperty?.profile?.user?.last_name}}</h5>
+                <h5 class="mb-1">
+                  {{ propertyStore?.dataProperty?.profile?.user?.name }}
+                  {{ propertyStore?.dataProperty?.profile?.user?.last_name }}
+                </h5>
                 <!-- <div class="mb-1">
                   <span class="star-rating"
                     ><i class="star-rating-icon fi-star-filled active"></i
@@ -424,7 +576,9 @@ const getIconClass = (serviceName: string) => {
                     ><i class="star-rating-icon fi-star-filled active"></i></span
                   ><span class="ms-1 fs-sm text-muted">(45 reviews)</span>
                 </div> -->
-                <p class="text-body">{{ propertyStore?.dataProperty?.profile?.role?.description}}</p>
+                <p class="text-body">
+                  {{ propertyStore?.dataProperty?.profile?.role?.description }}
+                </p>
               </router-link>
               <div class="ms-4 flex-shrink-0">
                 <a
@@ -441,13 +595,14 @@ const getIconClass = (serviceName: string) => {
             <ul class="list-unstyled border-bottom mb-4 pb-4">
               <li>
                 <a class="nav-link fw-normal p-0" href="tel:3025550107"
-                  ><i class="fi-phone mt-n1 me-2 align-middle opacity-60"></i>{{ propertyStore?.dataProperty?.profile?.user?.phone_number}}</a
+                  ><i class="fi-phone mt-n1 me-2 align-middle opacity-60"></i
+                  >{{ propertyStore?.dataProperty?.profile?.user?.phone_number }}</a
                 >
               </li>
               <li>
                 <a class="nav-link fw-normal p-0" href="mailto:floyd_miles@email.com"
                   ><i class="fi-mail mt-n1 me-2 align-middle opacity-60"></i
-                  >{{ propertyStore?.dataProperty?.profile?.user?.email}}</a
+                  >{{ propertyStore?.dataProperty?.profile?.user?.email }}</a
                 >
               </li>
             </ul>
@@ -574,8 +729,9 @@ const getIconClass = (serviceName: string) => {
 .parent .lightgallery-vue {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+
   gap: 8px;
+  height: 55vh;
 }
 
 .div1 {
@@ -605,10 +761,10 @@ const getIconClass = (serviceName: string) => {
 }
 
 .gallery-item > img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .tabs-header {
@@ -628,14 +784,14 @@ const getIconClass = (serviceName: string) => {
   font-weight: 500;
   color: #495057;
   transition: all 0.3s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-right: 0;
 }
 
 .tab-button:hover {
   background-color: #e9ecef;
   transform: translateY(-1px);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 .tab-button.active {
@@ -674,7 +830,7 @@ const getIconClass = (serviceName: string) => {
 .map-container {
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive */
@@ -682,21 +838,16 @@ const getIconClass = (serviceName: string) => {
   .tabs-header {
     gap: 6px;
   }
-  
+
   .tab-button {
     padding: 8px 12px;
     font-size: 14px;
   }
-  
+
   .placeholder-content {
     min-height: 200px;
   }
 }
 
-.lg-thumb {
-    display: flex!important;
-}
-.lg-thumb-outer .lg-thumb-align-middle .lg-grabbing {
-    display: none!important;
-}
+
 </style>
