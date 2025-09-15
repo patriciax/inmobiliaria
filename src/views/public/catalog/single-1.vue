@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
-import recentlyView from './common/recently-view.vue'
 import Lightgallery from 'lightgallery/vue'
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -10,7 +9,7 @@ import lgZoom from 'lightgallery/plugins/zoom'
 import 'lightgallery/css/lg-thumbnail.css'
 // Importaciones necesarias para Leaflet
 import L from 'leaflet'
-
+import FormContact from '@/views/public/form.vue'
 // Solución para los iconos de Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -22,12 +21,10 @@ L.Icon.Default.mergeOptions({
 // If you are using scss you can skip the css imports below and use scss instead
 import 'lightgallery/scss/lightgallery.scss'
 import { usePropertyStore } from '@/stores/propertys'
-import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
 
-const authStore = useAuthStore()
 const propertyStore = usePropertyStore()
-
+const mapRef = ref(null)
 const pluginsData = [lgThumbnail, lgZoom]
 const title = ref('Detalle de propiedad')
 const breadcrumbData = ref([
@@ -109,8 +106,23 @@ const getGridClass = (index: number) => {
 // Función para manejar cuando el mapa está listo
 const onMapReady = () => {
   console.log('Mapa listo')
+  setTimeout(() => {
+    if (mapRef.value && mapRef.value.leafletObject) {
+      mapRef.value.leafletObject.invalidateSize()
+    }
+  }, 100)
 }
 
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'mapa') {
+    setTimeout(() => {
+      if (mapRef.value && mapRef.value.leafletObject) {
+        mapRef.value.leafletObject.invalidateSize()
+      }
+    }, 200)
+  }
+})
 watch(
   () => router.currentRoute.value.params.id,
   async (newId) => {
@@ -401,7 +413,7 @@ const getVimeoEmbedUrl = function (url: string) {
 
         <div v-show="activeTab === 'tour'" class="tab-panel">
           <div class="placeholder-content">
-            <div :href="propertyStore?.dataProperty?.details?.view360_url">
+            <div v-if="propertyStore?.dataProperty?.details?.view360_url" :href="propertyStore?.dataProperty?.details?.view360_url">
               Tour virtual interactivo
             </div>
           </div>
@@ -411,6 +423,7 @@ const getVimeoEmbedUrl = function (url: string) {
           <h3>Ubicación en Mapa</h3>
           <div class="map-container" v-if="mapReady && propertyStore?.dataProperty">
             <LMap
+            ref="mapRef"
               :zoom="mapZoom"
               :center="mapCenter"
               :use-global-leaflet="false"
@@ -447,13 +460,14 @@ const getVimeoEmbedUrl = function (url: string) {
           <a
             :href="propertyStore?.dataProperty?.details?.view360_url"
             target="_blank"
-            v-if="tab.id === 'tour'"
+            v-if="tab.id === 'tour' && propertyStore?.dataProperty?.details?.view360_url"
+
             class="tab-button"
           >
             {{ tab.label }}
           </a>
 
-          <a :href="propertyStore?.dataProperty?.details?.street_view_url" target="_blank" v-else-if="tab.id === 'streetview'" class="tab-button">
+          <a :href="propertyStore?.dataProperty?.details?.street_view_url" target="_blank" v-else-if="tab.id === 'streetview' && propertyStore?.dataProperty?.details?.street_view_url" class="tab-button">
             {{ tab.label }}
 
           </a>
@@ -607,40 +621,8 @@ const getVimeoEmbedUrl = function (url: string) {
               </li>
             </ul>
             <!-- Contact form-->
-            <form class="needs-validation" novalidate>
-              <div class="mb-3">
-                <input class="form-control" type="text" placeholder="Your name*" required />
-                <div class="invalid-feedback">Please enter your name!</div>
-              </div>
-              <div class="mb-3">
-                <input class="form-control" type="email" placeholder="Email*" required />
-                <div class="invalid-feedback">Please provide valid email address!</div>
-              </div>
-              <input class="form-control mb-3" type="tel" placeholder="Phone" />
-              <div class="input-group mb-3">
-                <input
-                  class="form-control date-picker rounded pe-5"
-                  type="text"
-                  placeholder="Choose date"
-                  data-datepicker-options='{"altInput": true, "altFormat": "F j, Y", "dateFormat": "Y-m-d"}'
-                /><i class="fi-calendar position-absolute top-50 end-0 translate-middle-y me-3"></i>
-              </div>
-              <textarea
-                class="form-control mb-3"
-                rows="3"
-                placeholder="Message"
-                style="resize: none"
-              ></textarea>
-              <div class="form-check mb-4">
-                <input class="form-check-input" id="form-submit" type="checkbox" checked />
-                <label class="form-check-label fs-sm" for="form-submit"
-                  >Send news, tips and promos from Finder to my email.</label
-                >
-              </div>
-              <button class="btn btn-lg btn-primary d-block w-100" type="submit">
-                Send request
-              </button>
-            </form>
+            <FormContact :agent-id="propertyStore?.dataProperty?.profile?.id" :property-id="propertyStore?.dataProperty?.id"/>
+
           </div>
         </div>
       </aside>
@@ -661,7 +643,8 @@ const getVimeoEmbedUrl = function (url: string) {
           ></button>
         </div>
         <div class="modal-body px-sm-5 px-4">
-          <form class="needs-validation" novalidate>
+          <FormContact/>
+          <!-- <form class="needs-validation" novalidate>
             <div class="mb-3">
               <label class="form-label" for="review-name"
                 >Name <span class="text-danger">*</span></label
@@ -718,7 +701,7 @@ const getVimeoEmbedUrl = function (url: string) {
             <button class="btn btn-primary d-block w-100 mb-4" type="submit">
               Submit a review
             </button>
-          </form>
+          </form> -->
         </div>
       </div>
     </div>

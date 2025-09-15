@@ -8,6 +8,8 @@ export const useFiltersStore = defineStore('filters', () => {
   const error = ref<string | null>(null)
   const ubications = ref<any[]>([])
   const listTypeProperty = ref<any[]>([])
+  const states = ref<any[]>([])
+  const currentcountry = ref<string | null>(null)
 
   // Getters computados
   const getIsLoading = computed(() => isLoading.value)
@@ -22,7 +24,7 @@ export const useFiltersStore = defineStore('filters', () => {
     try {
       // const response = await api.get('v1/country/')
       const response = await api.get('v1/country/property/')
-
+      currentcountry.value = response.data[0]?.country_name || null
       ubications.value = response.data
     } catch (err: any) {
       error.value = err.message || 'Error al obtener las ubicaciones'
@@ -30,6 +32,21 @@ export const useFiltersStore = defineStore('filters', () => {
       isLoading.value = false
     }
   }
+
+  const getStates = async (countryId: number) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await api.get(`v1/state/?country=${countryId}`)
+      states.value = response.data
+    } catch (err: any) {
+      error.value = err.message || 'Error al obtener las ubicaciones'
+    } finally {
+      isLoading.value = false 
+    }
+    }
+    
 
   const getTypeProperty = async () => {
     isLoading.value = true
@@ -56,5 +73,9 @@ export const useFiltersStore = defineStore('filters', () => {
     getCountries,
     listTypeProperty,
     getTypeProperty,
+    states,
+    getStates,
+    error,
+    currentcountry
   }
 })
