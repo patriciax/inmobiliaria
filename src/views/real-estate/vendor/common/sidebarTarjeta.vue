@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Form from '../../../public/form.vue'
+
 </script>
 
 <template>
@@ -56,7 +57,6 @@ import Form from '../../../public/form.vue'
           
         </div>
 
-        <Form/>
     </aside>
 
     <!-- Message modal-->
@@ -68,11 +68,8 @@ import Form from '../../../public/form.vue'
                     <button class="btn-close ms-0" type="button" data-bs-dismiss="modal"></button>
                 </div>
                 <form class="modal-body needs-validation" novalidate>
-                    <div class="mb-4">
-                        <textarea class="form-control" rows="6" placeholder="Type your message here" required></textarea>
-                        <div class="invalid-feedback">Please type your message before sending.</div>
-                    </div>
-                    <button class="btn btn-primary mb-2" type="submit"><i class="fi-send me-2"></i>Send message</button>
+                    <Form/>
+                    <!-- <button class="btn btn-primary mb-2" type="submit"><i class="fi-send me-2"></i>Send message</button> -->
                 </form>
             </div>
         </div>

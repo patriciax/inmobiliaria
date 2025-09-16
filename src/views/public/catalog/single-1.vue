@@ -3,6 +3,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import Lightgallery from 'lightgallery/vue'
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
+import type { Map as LeafletMap } from 'leaflet'
+
 import 'leaflet/dist/leaflet.css'
 import lgThumbnail from 'lightgallery/plugins/thumbnail'
 import lgZoom from 'lightgallery/plugins/zoom'
@@ -24,7 +26,8 @@ import { usePropertyStore } from '@/stores/propertys'
 import router from '@/router'
 
 const propertyStore = usePropertyStore()
-const mapRef = ref(null)
+const mapRef = ref<InstanceType<typeof LMap> | null>(null)
+
 const pluginsData = [lgThumbnail, lgZoom]
 const title = ref('Detalle de propiedad')
 const breadcrumbData = ref([
@@ -107,8 +110,8 @@ const getGridClass = (index: number) => {
 const onMapReady = () => {
   console.log('Mapa listo')
   setTimeout(() => {
-    if (mapRef.value && mapRef.value.leafletObject) {
-      mapRef.value.leafletObject.invalidateSize()
+    if (mapRef.value?.leafletObject) {
+      (mapRef.value.leafletObject as LeafletMap).invalidateSize()
     }
   }, 100)
 }
@@ -117,8 +120,8 @@ const onMapReady = () => {
 watch(activeTab, (newTab) => {
   if (newTab === 'mapa') {
     setTimeout(() => {
-      if (mapRef.value && mapRef.value.leafletObject) {
-        mapRef.value.leafletObject.invalidateSize()
+      if (mapRef.value?.leafletObject) {
+        (mapRef.value.leafletObject as LeafletMap).invalidateSize()
       }
     }, 200)
   }
@@ -570,7 +573,7 @@ const getVimeoEmbedUrl = function (url: string) {
         <div class="card shadow-sm mb-4">
           <div class="card-body">
             <div class="d-flex align-items-start justify-content-between">
-              <router-link class="text-decoration-none" to="/real-estate-vendor-properties">
+              <router-link class="text-decoration-none" :to="`/tarjeta-digital/${propertyStore?.dataProperty?.profile?.id}`">
                 <img
                   class="rounded-circle mb-2"
                   src="@/assets/img/avatars/22.jpg"

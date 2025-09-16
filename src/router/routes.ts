@@ -52,7 +52,7 @@ export const routes = [
         }
     },
     {
-        path: '/tarjeta-digital',
+        path: '/tarjeta-digital/:id',
         name: 'Tarjeta Digital',
 
         component: () => import('@/views/public/TarjetaDigital.vue'),
@@ -186,7 +186,7 @@ export const routes = [
         }
     },
     {
-        path: '/real-estate-vendor-properties',
+        path: '/real-estate-vendor-properties/',
         name: 'Vendor Property',
         component: () => import('@/views/real-estate/vendor/vendor-properties.vue'),
         meta: {
