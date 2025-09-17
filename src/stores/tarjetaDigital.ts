@@ -143,7 +143,7 @@ export const usePropertiesStore = defineStore('properties', () => {
       
       // Asegurar que siempre tengamos un array
       properties.value = Array.isArray(response.data) ? response.data : []
-      pagination.value = response.data.pagination || {
+      pagination.value = response.pagination || {
         total: 0,
         totalPages: 0,
         currentPage: 1,
