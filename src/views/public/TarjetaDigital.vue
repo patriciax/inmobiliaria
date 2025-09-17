@@ -1,16 +1,36 @@
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import Sidebar from '@/views/real-estate/vendor/common/sidebarTarjeta.vue'
 import { usePropertiesStore } from '@/stores/tarjetaDigital'
 
-// Props para el ID del perfil del agente
+// Props para el ID del perfil del agente (opcional, se puede pasar por props o tomar de la ruta)
 const props = defineProps<{
   agentId?: number
 }>()
 
+const route = useRoute()
 const propertiesStore = usePropertiesStore()
+
+// Obtener el ID del agente desde la ruta o props
+const currentAgentId = computed(() => {
+  // Primero intentar obtener de los props
+  if (props.agentId) {
+    return props.agentId
+  }
+  
+  // Luego obtener de la ruta
+  const routeId = route.params.id
+  if (routeId) {
+    const parsedId = parseInt(routeId as string)
+    return isNaN(parsedId) ? 4 : parsedId // Usar 4 como fallback si no se puede parsear
+  }
+  
+  // Fallback por defecto
+  return 4
+})
 
 const breadcrumbData = ref([
   {
@@ -18,15 +38,23 @@ const breadcrumbData = ref([
     link: '/',
     subitems: [
       {
-        title: 'Agents',
+        title: 'Agentes',
         link: '/real-estate-vendor-properties'
       },
       {
-        title: 'Floyd Miles'
+        title: `Agente ${currentAgentId.value}`
       }
     ]
   }
 ])
+
+// Actualizar breadcrumb cuando se cargan los datos del agente
+const updateBreadcrumb = () => {
+  if (propertiesStore.properties && propertiesStore.properties.length > 0) {
+    const profile = propertiesStore.properties[0].profile
+    breadcrumbData.value[0].subitems[1].title = `${profile.user.name} ${profile.user.last_name}`
+  }
+}
 
 // Estado local para la tab activa
 const activeTab = ref('for-sale')
@@ -52,7 +80,7 @@ const formatLocation = (property: any) => {
 // Función para cargar más propiedades
 const loadMore = async () => {
   try {
-    await propertiesStore.loadMoreProperties(props.agentId || 4)
+    await propertiesStore.loadMoreProperties(currentAgentId.value)
   } catch (error) {
     console.error('Error al cargar más propiedades:', error)
   }
@@ -61,9 +89,23 @@ const loadMore = async () => {
 // Cargar propiedades al montar el componente
 onMounted(async () => {
   try {
-    await propertiesStore.fetchPropertiesByProfile(props.agentId || 4)
+    await propertiesStore.fetchPropertiesByProfile(currentAgentId.value)
+    updateBreadcrumb()
   } catch (error) {
     console.error('Error al cargar propiedades:', error)
+  }
+})
+
+// Recargar propiedades si cambia el ID del agente en la ruta
+watch(currentAgentId, async (newAgentId, oldAgentId) => {
+  if (newAgentId !== oldAgentId) {
+    try {
+      propertiesStore.clearState() // Limpiar estado anterior
+      await propertiesStore.fetchPropertiesByProfile(newAgentId)
+      updateBreadcrumb()
+    } catch (error) {
+      console.error('Error al cargar propiedades:', error)
+    }
   }
 })
 
@@ -87,15 +129,6 @@ const switchTab = (tabName: string, event: Event) => {
   if (targetPane) {
     targetPane.classList.add('show', 'active')
   }
-}
-
-const imageNotFound = (event: Event) => {
-    const target = event.target as HTMLImageElement;
-    
-    // Solo mostrar imagen de error si la URL no es HTTPS
-    if (!target.src.startsWith('http')) {
-        target.src = 'https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png';
-    }
 }
 </script>
 
@@ -139,6 +172,8 @@ const imageNotFound = (event: Event) => {
 
       <!-- Content-->
       <div class="col-lg-9 col-md-8">
+        <!-- Debug info (opcional, eliminar en producción) -->
+ 
         <!-- Loading State -->
         <div v-if="propertiesStore.isLoading && propertiesStore.properties.length === 0" class="text-center py-5">
           <div class="spinner-border text-primary" role="status">
@@ -153,7 +188,7 @@ const imageNotFound = (event: Event) => {
           <p>{{ propertiesStore.error }}</p>
           <button 
             class="btn btn-outline-danger" 
-            @click="propertiesStore.fetchPropertiesByProfile(agentId || 4)"
+            @click="propertiesStore.fetchPropertiesByProfile(currentAgentId)"
           >
             Reintentar
           </button>
@@ -177,7 +212,7 @@ const imageNotFound = (event: Event) => {
             <div v-else class="row g-4 g-md-3 g-lg-4 pt-2">
               <!-- Item-->
               <div
-                v-for="(property) in rentProperties"
+                v-for="(property, index) in rentProperties"
                 :key="property.id"
                 class="col-sm-6 col-xl-4"
               >
@@ -217,8 +252,6 @@ const imageNotFound = (event: Event) => {
                           :src="image" 
                           :alt="`${property.title} - Imagen ${imgIndex + 1}`" 
                           style="height: 199px; width: 100%; object-fit: cover;" 
-                          @error="imageNotFound"
-
                         />
                       </SwiperSlide>
                     </Swiper>
@@ -291,7 +324,7 @@ const imageNotFound = (event: Event) => {
             <div v-else class="row g-4 g-md-3 g-lg-4 py-2">
               <!-- Item-->
               <div
-                v-for="(property) in saleProperties"
+                v-for="(property, index) in saleProperties"
                 :key="property.id"
                 class="col-sm-6 col-xl-4"
               >
