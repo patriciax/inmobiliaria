@@ -216,7 +216,7 @@ const switchTab = (tabName: string, event: Event) => {
                 :key="property.id"
                 class="col-sm-6 col-xl-4"
               >
-                <div class="card shadow-sm card-hover border-0 h-100">
+                <div v-if="property.status.description != 'Borrador'" class="card shadow-sm card-hover border-0 h-100">
                   <div class="tns-carousel-wrapper card-img-top card-img-hover">
                     <router-link class="img-overlay" :to="`/real-estate-single-v1/${property.id}`"></router-link>
                     
@@ -327,8 +327,9 @@ const switchTab = (tabName: string, event: Event) => {
                 v-for="(property, index) in saleProperties"
                 :key="property.id"
                 class="col-sm-6 col-xl-4"
+                
               >
-                <div class="card shadow-sm card-hover border-0 h-100">
+                <div  v-if="property.status.description != 'Borrador'" class="card shadow-sm card-hover border-0 h-100">
                   <div class="tns-carousel-wrapper card-img-top card-img-hover">
                     <router-link class="img-overlay" :to="`/real-estate-single-v1/${property.id}`"></router-link>
                     

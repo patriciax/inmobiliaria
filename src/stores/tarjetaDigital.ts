@@ -112,14 +112,24 @@ export const usePropertiesStore = defineStore('properties', () => {
   const getError = computed(() => error.value)
   const getPagination = computed(() => pagination.value)
 
-  // Separar propiedades por categoría
+  // Estados que no se deben mostrar públicamente
+  const excludedStatuses = ['Borrador', 'Inactivo', 'Eliminado', 'Suspendido']
+
+  // Función para verificar si una propiedad es visible
+  const isPropertyVisible = (property: Property) => {
+    return !excludedStatuses.includes(property.status.description)
+  }
+
+  // Separar propiedades por categoría (excluyendo las que están en estados no visibles)
   const rentProperties = computed(() => {
     if (!properties.value || !Array.isArray(properties.value)) {
       return []
     }
     return properties.value.filter(property => 
-      property.category.description.toLowerCase().includes('arrend') ||
-      property.category.description.toLowerCase().includes('rent')
+      isPropertyVisible(property) && (
+        property.category.description.toLowerCase().includes('arrend') ||
+        property.category.description.toLowerCase().includes('rent')
+      )
     )
   })
 
@@ -128,9 +138,19 @@ export const usePropertiesStore = defineStore('properties', () => {
       return []
     }
     return properties.value.filter(property => 
-      property.category.description.toLowerCase().includes('vent') ||
-      property.category.description.toLowerCase().includes('sale')
+      isPropertyVisible(property) && (
+        property.category.description.toLowerCase().includes('vent') ||
+        property.category.description.toLowerCase().includes('sale')
+      )
     )
+  })
+
+  // Todas las propiedades visibles (sin estados excluidos)
+  const visibleProperties = computed(() => {
+    if (!properties.value || !Array.isArray(properties.value)) {
+      return []
+    }
+    return properties.value.filter(property => isPropertyVisible(property))
   })
 
   // Método para obtener propiedades por perfil
@@ -243,12 +263,14 @@ export const usePropertiesStore = defineStore('properties', () => {
     pagination: getPagination,
     rentProperties,
     saleProperties,
+    visibleProperties,
     
     // Métodos
     fetchPropertiesByProfile,
     loadMoreProperties,
     formatPrice,
     getBadgeColor,
-    clearState
+    clearState,
+    isPropertyVisible
   }
 })

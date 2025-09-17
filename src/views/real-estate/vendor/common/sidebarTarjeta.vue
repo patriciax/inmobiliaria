@@ -95,7 +95,7 @@ const fullName = computed(() => {
 
 // Computed para estadísticas del agente
 const agentStats = computed(() => {
-  if (!propertiesStore.properties || !Array.isArray(propertiesStore.properties)) {
+  if (!propertiesStore.visibleProperties || !Array.isArray(propertiesStore.visibleProperties)) {
     return {
       total: 0,
       rent: 0,
@@ -103,7 +103,7 @@ const agentStats = computed(() => {
     }
   }
   
-  const totalProperties = propertiesStore.properties.length
+  const totalProperties = propertiesStore.visibleProperties.length
   const rentProperties = propertiesStore.rentProperties.length
   const saleProperties = propertiesStore.saleProperties.length
   
