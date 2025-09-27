@@ -122,27 +122,59 @@ export const usePropertiesStore = defineStore('properties', () => {
 
   // Separar propiedades por categoría (excluyendo las que están en estados no visibles)
   const rentProperties = computed(() => {
+    console.log('Computing rentProperties...')
     if (!properties.value || !Array.isArray(properties.value)) {
+      console.log('Properties is not an array:', properties.value)
       return []
     }
-    return properties.value.filter(property => 
-      isPropertyVisible(property) && (
-        property.category.description.toLowerCase().includes('arrend') ||
-        property.category.description.toLowerCase().includes('rent')
-      )
-    )
+    
+    const filtered = properties.value.filter(property => {
+      const isVisible = isPropertyVisible(property)
+      const categoryDesc = property.category.description.toLowerCase()
+      const isRent = categoryDesc.includes('arrend') || categoryDesc.includes('rent') || categoryDesc === 'arriendo'
+      
+      console.log(`Property ${property.id}:`, {
+        title: property.title,
+        category: property.category.description,
+        status: property.status.description,
+        isVisible,
+        isRent,
+        willShow: isVisible && isRent
+      })
+      
+      return isVisible && isRent
+    })
+    
+    console.log('Rent properties result:', filtered.length)
+    return filtered
   })
 
   const saleProperties = computed(() => {
+    console.log('Computing saleProperties...')
     if (!properties.value || !Array.isArray(properties.value)) {
+      console.log('Properties is not an array:', properties.value)
       return []
     }
-    return properties.value.filter(property => 
-      isPropertyVisible(property) && (
-        property.category.description.toLowerCase().includes('vent') ||
-        property.category.description.toLowerCase().includes('sale')
-      )
-    )
+    
+    const filtered = properties.value.filter(property => {
+      const isVisible = isPropertyVisible(property)
+      const categoryDesc = property.category.description.toLowerCase()
+      const isSale = categoryDesc.includes('vent') || categoryDesc.includes('sale') || categoryDesc === 'venta'
+      
+      console.log(`Property ${property.id}:`, {
+        title: property.title,
+        category: property.category.description,
+        status: property.status.description,
+        isVisible,
+        isSale,
+        willShow: isVisible && isSale
+      })
+      
+      return isVisible && isSale
+    })
+    
+    console.log('Sale properties result:', filtered.length)
+    return filtered
   })
 
   // Todas las propiedades visibles (sin estados excluidos)
@@ -161,6 +193,8 @@ export const usePropertiesStore = defineStore('properties', () => {
     try {
       const response = await api.get<ApiResponse>(`/public/properties/all/?profile=${profileId}&page=${page}&pageSize=${pageSize}`)
       
+      console.log('API Response:', response)
+      
       // Asegurar que siempre tengamos un array
       properties.value = Array.isArray(response.data) ? response.data : []
       pagination.value = response.pagination || {
@@ -171,6 +205,8 @@ export const usePropertiesStore = defineStore('properties', () => {
         hasNextPage: false,
         hasPrevPage: false
       }
+      
+      console.log('Properties loaded:', properties.value)
       
       return response.data
     } catch (err: any) {

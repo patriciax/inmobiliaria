@@ -328,7 +328,7 @@ const getVimeoEmbedUrl = function (url: string) {
             <div class="parent">
               <lightgallery
                 :style="{
-                  gridTemplateRows: publishedImages.length > 3 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)'
+                  gridTemplateRows: publishedImages.length > 3 ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)'
                 }"
                 :settings="{ speed: 500, plugins: pluginsData }"
                 v-if="publishedImages.length > 0"
@@ -717,7 +717,7 @@ const getVimeoEmbedUrl = function (url: string) {
   grid-template-columns: repeat(3, 1fr);
 
   gap: 8px;
-  height: 55vh;
+  height: 60vh;
 }
 
 .div1 {
