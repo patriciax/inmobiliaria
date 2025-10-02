@@ -168,10 +168,22 @@ const handlePageChange = async (page: number) => {
                                 </div>
                             </div>
                             <div class="card-footer d-flex align-items-center justify-content-center mx-3 pt-3 text-nowrap">
-                                <span class="d-inline-block mx-1 px-2 fs-sm">{{ property.beds }}<i class="fi-bed ms-1 mt-n1 fs-lg text-muted"></i></span>
-                                <span class="d-inline-block mx-1 px-2 fs-sm">{{ property.baths }}<i class="fi-bath ms-1 mt-n1 fs-lg text-muted"></i></span>
-                                <span class="d-inline-block mx-1 px-2 fs-sm">{{ property.cars }}<i class="fi-car ms-1 mt-n1 fs-lg text-muted"></i></span>
-                            </div>
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.rooms }}<i class="fi-bed ms-1 mt-n1 fs-lg text-muted"></i>
+                    </span>
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.bathrooms }}<i class="fi-bath ms-1 mt-n1 fs-lg text-muted"></i>
+                    </span>
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.parkings }}<i class="fi-car ms-1 mt-n1 fs-lg text-muted"></i>
+                    </span>
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.area }} m²
+                    </span>
+                    <span v-if="property.pets" class="d-inline-block mx-1 px-2 fs-sm">
+                       <img src="@/assets/img/paw.png" alt="Pet Friendly" width="20" height="20" title="Pet Friendly" style="    filter: opacity(.4);" />
+                    </span>
+                  </div>
                         </div>
                     </div>
 

@@ -15,8 +15,17 @@ export const routes = [
     // },
     {
         path: '/',
-        name: 'Property Sale',
+        name: 'Home',
         component: () => import('@/views/public/catalog/sale.vue'),
+        meta: {
+            title: 'Home v.1',
+            layout: DefaultLayout
+        }
+    },
+    {
+        path: '/sale',
+        name: 'Property Sale',
+        component: () => import('@/views/public/catalog/salePage.vue'),
         meta: {
             title: 'Property For Sale',
             layout: DefaultLayout

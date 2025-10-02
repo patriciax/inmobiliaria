@@ -86,7 +86,7 @@ watch(
         <ul class="navbar-nav navbar-nav-scroll" style="max-height: 35rem">
           <!-- Menu items-->
           <li class="nav-item dropdown">
-            <router-link class="nav-link dropdown-togle dropdown-item" to="/real-estate-single-v1"
+            <router-link class="nav-link dropdown-togle dropdown-item" to="/"
               >Inicio</router-link
             >
           </li>

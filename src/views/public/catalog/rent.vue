@@ -95,7 +95,7 @@ const  getPropiestys = async() => {
                                 </div>
                                 <Swiper v-if="property.imageSrc" :slidesPerView="1" :loop="true">
                                     <SwiperSlide v-for="(image, index) in property.imageSrc" :key="index">
-                                        <img :src="image" alt="Image" />
+                                        <img :src="image" alt="Image"  />
                                     </SwiperSlide>
                                 </Swiper>
                             </div>

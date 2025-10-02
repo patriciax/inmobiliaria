@@ -140,18 +140,43 @@ export const usePropertyStore = defineStore('property', () => {
       hasPrevPage: false
     }
   }
-
-  const getPropertiesPublic = async (page: number = 1, pageSize: number = 10, categoryId?: number, countryId?: number | string ,bathrooms?: number,parkings?: number,rooms?: number,min_price?: number,max_price?: number,stateId?: number): Promise<UserData[] | null> => {
+  const getPropertiesPublic = async (
+    page: number = 1,
+    pageSize: number = 10,
+    categoryId?: number,
+    countryId?: number | string,
+    bathrooms?: number,
+    parkings?: number,
+    rooms?: number,
+    min_price?: number,
+    max_price?: number,
+    stateId?: number
+  ): Promise<UserData[] | null> => {
     console.log('getPropertiesPublic called with:', { page, pageSize, categoryId, countryId, bathrooms, parkings, rooms })
     isLoading.value = true
     error.value = null
+  
     try {
-      const response = await api.get<PropertyResponse>(`/public/properties/all/?page=${page}&pageSize=${pageSize}${categoryId ? `&category=${categoryId}` : ''} ${countryId ? `&country=${countryId}` : ''} ${bathrooms ? `&bathrooms=${bathrooms}` : ''}  ${parkings ? `&parkings=${parkings}` : ''} ` + `${rooms ? `&rooms=${rooms}` : ''} +` + `${min_price ? `&min_price=${min_price}` : ''} +` + `${max_price ? `&max_price=${max_price}` : ''}` + `${stateId ? `&state=${stateId}` : ''}`)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+      })
+  
+      if (categoryId) params.append("category", categoryId.toString())
+      if (countryId) params.append("country", countryId.toString())
+      if (bathrooms) params.append("bathrooms", bathrooms.toString())
+      if (parkings) params.append("parkings", parkings.toString())
+      if (rooms) params.append("rooms", rooms.toString())
+      if (min_price) params.append("min_price", min_price.toString())
+      if (max_price) params.append("max_price", max_price.toString())
+      if (stateId) params.append("state", stateId.toString())
+  
+      const response = await api.get<PropertyResponse>(`/public/properties/all/?${params.toString()}`)
+  
       if (!response.data || response.data.length === 0) {
-        // error.value = 'No se encontraron propiedades'
-        // toast.error(error.value)
         return null
       }
+  
       property.value = response.data
       pagination.value = response.pagination
       return response.data
@@ -163,6 +188,7 @@ export const usePropertyStore = defineStore('property', () => {
       isLoading.value = false
     }
   }
+  
 
   const getProperties = async (page: number = 1, pageSize: number = 10): Promise<UserData[] | null> => {
     isLoading.value = true

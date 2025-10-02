@@ -58,8 +58,7 @@ const tabs = [
   { id: 'video', label: 'Video', activeTab: !!propertyStore?.dataProperty?.details?.video_url },
   { id: 'tour', label: 'Tour', activeTab: !!propertyStore?.dataProperty?.details?.view360_url },
   { id: 'mapa', label: 'Mapa', activeTab: !!propertyStore?.dataProperty?.details?.map_url },
-  { id: 'streetview', label: 'Street View' },
-
+  { id: 'streetview', label: 'Street View' }
 ]
 
 const activeTab = ref('fotos')
@@ -111,17 +110,16 @@ const onMapReady = () => {
   console.log('Mapa listo')
   setTimeout(() => {
     if (mapRef.value?.leafletObject) {
-      (mapRef.value.leafletObject as LeafletMap).invalidateSize()
+      ;(mapRef.value.leafletObject as LeafletMap).invalidateSize()
     }
   }, 100)
 }
-
 
 watch(activeTab, (newTab) => {
   if (newTab === 'mapa') {
     setTimeout(() => {
       if (mapRef.value?.leafletObject) {
-        (mapRef.value.leafletObject as LeafletMap).invalidateSize()
+        ;(mapRef.value.leafletObject as LeafletMap).invalidateSize()
       }
     }, 200)
   }
@@ -178,7 +176,8 @@ const getIconClass = (serviceName: string) => {
     'Transporte Publico': 'fi-bus',
     'Centros Comerciales': 'fi-shopping-bag',
     Colegios: 'fi-school',
-    Hospitales: 'fi-hospital'
+    Hospitales: 'fi-hospital',
+    pets: 'fi-pet'
   }
 
   return iconMap[serviceName] || 'fi-circle'
@@ -239,8 +238,6 @@ const getVimeoEmbedUrl = function (url: string) {
 
   return `https://player.vimeo.com/video/${videoId}`
 }
-
-
 </script>
 
 <template>
@@ -416,7 +413,10 @@ const getVimeoEmbedUrl = function (url: string) {
 
         <div v-show="activeTab === 'tour'" class="tab-panel">
           <div class="placeholder-content">
-            <div v-if="propertyStore?.dataProperty?.details?.view360_url" :href="propertyStore?.dataProperty?.details?.view360_url">
+            <div
+              v-if="propertyStore?.dataProperty?.details?.view360_url"
+              :href="propertyStore?.dataProperty?.details?.view360_url"
+            >
               Tour virtual interactivo
             </div>
           </div>
@@ -426,7 +426,7 @@ const getVimeoEmbedUrl = function (url: string) {
           <h3>Ubicación en Mapa</h3>
           <div class="map-container" v-if="mapReady && propertyStore?.dataProperty">
             <LMap
-            ref="mapRef"
+              ref="mapRef"
               :zoom="mapZoom"
               :center="mapCenter"
               :use-global-leaflet="false"
@@ -454,8 +454,6 @@ const getVimeoEmbedUrl = function (url: string) {
             <p>No hay coordenadas disponibles para mostrar el mapa</p>
           </div>
         </div>
-
- 
       </div>
 
       <div class="tabs-header mt-3">
@@ -464,15 +462,20 @@ const getVimeoEmbedUrl = function (url: string) {
             :href="propertyStore?.dataProperty?.details?.view360_url"
             target="_blank"
             v-if="tab.id === 'tour' && propertyStore?.dataProperty?.details?.view360_url"
-
             class="tab-button"
           >
             {{ tab.label }}
           </a>
 
-          <a :href="propertyStore?.dataProperty?.details?.street_view_url" target="_blank" v-else-if="tab.id === 'streetview' && propertyStore?.dataProperty?.details?.street_view_url" class="tab-button">
+          <a
+            :href="propertyStore?.dataProperty?.details?.street_view_url"
+            target="_blank"
+            v-else-if="
+              tab.id === 'streetview' && propertyStore?.dataProperty?.details?.street_view_url
+            "
+            class="tab-button"
+          >
             {{ tab.label }}
-
           </a>
           <button
             @click="activeTab = tab.id"
@@ -558,6 +561,19 @@ const getVimeoEmbedUrl = function (url: string) {
                 </span>
               </li>
             </template>
+
+            <span v-if="propertyStore?.dataProperty?.pets" class="d-inline-block mx-1 px-2 fs-sm">
+              <img
+                src="@/assets/img/paw.png"
+                alt="Pet Friendly"
+                width="20"
+                height="20"
+                title="Pet Friendly"
+                style="filter: opacity(0.4)"
+              />
+
+             <span class="ms-2"> Se admiten mascotas</span>
+            </span>
           </ul>
 
           <!-- Mostrar mensaje si no hay servicios disponibles-->
@@ -573,7 +589,10 @@ const getVimeoEmbedUrl = function (url: string) {
         <div class="card shadow-sm mb-4">
           <div class="card-body">
             <div class="d-flex align-items-start justify-content-between">
-              <router-link class="text-decoration-none" :to="`/tarjeta-digital/${propertyStore?.dataProperty?.profile?.id}`">
+              <router-link
+                class="text-decoration-none"
+                :to="`/tarjeta-digital/${propertyStore?.dataProperty?.profile?.id}`"
+              >
                 <img
                   class="rounded-circle mb-2"
                   src="@/assets/img/avatars/22.jpg"
@@ -624,8 +643,10 @@ const getVimeoEmbedUrl = function (url: string) {
               </li>
             </ul>
             <!-- Contact form-->
-            <FormContact :agent-id="propertyStore?.dataProperty?.profile?.id" :property-id="propertyStore?.dataProperty?.id"/>
-
+            <FormContact
+              :agent-id="propertyStore?.dataProperty?.profile?.id"
+              :property-id="propertyStore?.dataProperty?.id"
+            />
           </div>
         </div>
       </aside>
@@ -646,7 +667,7 @@ const getVimeoEmbedUrl = function (url: string) {
           ></button>
         </div>
         <div class="modal-body px-sm-5 px-4">
-          <FormContact/>
+          <FormContact />
           <!-- <form class="needs-validation" novalidate>
             <div class="mb-3">
               <label class="form-label" for="review-name"
@@ -834,6 +855,4 @@ const getVimeoEmbedUrl = function (url: string) {
     min-height: 200px;
   }
 }
-
-
 </style>

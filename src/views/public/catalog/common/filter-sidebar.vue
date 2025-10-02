@@ -17,7 +17,7 @@ const props = defineProps({
   },
   isActive: {
     type: String,
-    default: 'Rent'
+    default: ''
   }
 })
 
@@ -177,7 +177,7 @@ const filterByPrice = async () => {
             >
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" :class="{ active: isActive === 'Sale' }" to="/"
+            <router-link class="nav-link" :class="{ active: isActive === 'Sale' }" to="/sale"
               ><i class="fi-home fs-base me-2"></i>En venta</router-link
             >
           </li>
@@ -588,5 +588,8 @@ const filterByPrice = async () => {
 
  .range-slider-value-min,.range-slider-value-max{
     padding-left: 6px;
+}
+.nav-tabs .nav-item {
+  font-size: 14px;
 }
 </style>

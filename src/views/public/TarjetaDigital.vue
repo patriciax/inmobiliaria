@@ -289,6 +289,9 @@ const switchTab = (tabName: string, event: Event) => {
                     <span class="d-inline-block mx-1 px-2 fs-sm">
                       {{ property.area }}m²
                     </span>
+                    <span v-if="property.pets" class="d-inline-block mx-1 px-2 fs-sm">
+                       <img src="@/assets/img/paw.png" alt="Pet Friendly" width="20" height="20" title="Pet Friendly" style="    filter: opacity(.4);" />
+                    </span>
                   </div>
                 </div>
               </div>
