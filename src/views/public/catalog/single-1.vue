@@ -276,7 +276,7 @@ const getVimeoEmbedUrl = function (url: string) {
         <div class="mb-2 border-bottom">
           <h2 class="h3">
             ${{ propertyStore?.dataProperty?.price
-            }}<span class="d-inline-block ms-1 fs-base fw-normal text-body">/month</span>
+            }}<span class="d-inline-block ms-1 fs-base fw-normal text-body"></span>
           </h2>
           <p class="text-end">{{ propertyStore?.dataProperty?.visits }} Vistas</p>
         </div>
@@ -288,7 +288,7 @@ const getVimeoEmbedUrl = function (url: string) {
             data-bs-toggle="tooltip"
             title="Add to Wishlist"
           >
-            <i class="fi-heart"></i>
+           <!-- {{ propertyStore?.dataProperty?.favorite }} -->
           </button>
           <div class="dropdown d-inline-block" data-bs-toggle="tooltip" title="Share">
             <button
@@ -325,7 +325,13 @@ const getVimeoEmbedUrl = function (url: string) {
             <div class="parent">
               <lightgallery
                 :style="{
-                  gridTemplateRows: publishedImages.length > 3 ? 'repeat(4, 1fr)' : 'repeat(2, 1fr)'
+                  gridTemplateRows:
+                    publishedImages.length <= 3
+                      ? 'repeat(2, 1fr)'
+                      : publishedImages.length <= 6
+                        ? 'repeat(3, 1fr)'
+                        : 'repeat(4, 1fr)',
+                  height: publishedImages.length > 3 ? '110vh' : '60vh'
                 }"
                 :settings="{ speed: 500, plugins: pluginsData }"
                 v-if="publishedImages.length > 0"
@@ -572,7 +578,7 @@ const getVimeoEmbedUrl = function (url: string) {
                 style="filter: opacity(0.4)"
               />
 
-             <span class="ms-2"> Se admiten mascotas</span>
+              <span class="ms-2"> Se admiten mascotas</span>
             </span>
           </ul>
 
@@ -581,6 +587,38 @@ const getVimeoEmbedUrl = function (url: string) {
             No hay servicios disponibles
           </div>
         </div>
+
+        <section>
+          <div class="tab-panel">
+            <h3>Ubicación en Mapa</h3>
+            <div class="map-container" v-if="mapReady && propertyStore?.dataProperty">
+              <LMap
+                ref="mapRef"
+                :zoom="mapZoom"
+                :center="mapCenter"
+                :use-global-leaflet="false"
+                style="height: 500px; width: 100%; z-index: 1"
+                @ready="onMapReady"
+              >
+                <LTileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                />
+                <LMarker :lat-lng="mapCenter" v-if="mapCenter[0] !== 0 && mapCenter[1] !== 0">
+                  <LPopup>
+                    <div>
+                      <strong>{{ propertyStore.dataProperty?.title || 'Propiedad' }}</strong
+                      ><br />
+                      <span v-if="propertyStore.dataProperty?.location">{{
+                        propertyStore.dataProperty.location
+                      }}</span>
+                    </div>
+                  </LPopup>
+                </LMarker>
+              </LMap>
+            </div>
+          </div>
+        </section>
       </div>
 
       <!-- Sidebar-->
@@ -588,60 +626,58 @@ const getVimeoEmbedUrl = function (url: string) {
         <!-- Contact card-->
         <div class="card shadow-sm mb-4">
           <div class="card-body">
-            <div class="d-flex align-items-start justify-content-between">
-              <router-link
-                class="text-decoration-none"
-                :to="`/tarjeta-digital/${propertyStore?.dataProperty?.profile?.id}`"
-              >
+            <div class="d-flex align-items-start justify-content-between flex-column flex-sm-row">
+              <div class="d-flex align-items-start gap-3">
                 <img
                   class="rounded-circle mb-2"
-                  src="@/assets/img/avatars/22.jpg"
+                  :src="propertyStore?.dataProperty?.profile?.user?.photo_url"
                   width="60"
                   alt="Avatar"
+                  loading="lazy"
+                  crossorigin="anonymous"
+                  referrerPolicy="no-referrer"
+                  v-if="propertyStore?.dataProperty?.profile?.user?.photo_url"
                 />
-                <h5 class="mb-1">
-                  {{ propertyStore?.dataProperty?.profile?.user?.name }}
-                  {{ propertyStore?.dataProperty?.profile?.user?.last_name }}
-                </h5>
-                <!-- <div class="mb-1">
-                  <span class="star-rating"
-                    ><i class="star-rating-icon fi-star-filled active"></i
-                    ><i class="star-rating-icon fi-star-filled active"></i
-                    ><i class="star-rating-icon fi-star-filled active"></i
-                    ><i class="star-rating-icon fi-star-filled active"></i
-                    ><i class="star-rating-icon fi-star-filled active"></i></span
-                  ><span class="ms-1 fs-sm text-muted">(45 reviews)</span>
-                </div> -->
-                <p class="text-body">
-                  {{ propertyStore?.dataProperty?.profile?.role?.description }}
-                </p>
-              </router-link>
-              <div class="ms-4 flex-shrink-0">
-                <a
-                  class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle ms-2 mb-2"
-                  href="javascript:void(0);"
-                  ><i class="fi-facebook"></i></a
-                ><a
-                  class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle ms-2 mb-2"
-                  href="javascript:void(0);"
-                  ><i class="fi-linkedin"></i
-                ></a>
+                <img
+                  class="rounded-circle mb-2"
+                  src="@/assets/img/avatars/14.png"
+                  width="60"
+                  alt="Avatar Placeholder"
+                  loading="lazy"
+                  v-else
+                />
+                <div>
+                  <router-link
+                    class="text-decoration-none d-flex perfil-header flex-column"
+                    :to="`/tarjeta-digital/${propertyStore?.dataProperty?.profile?.id}`"
+                  >
+                    <h5 class="mb-1">
+                      {{ propertyStore?.dataProperty?.profile?.user?.name }}
+                      {{ propertyStore?.dataProperty?.profile?.user?.last_name }}
+                    </h5>
+                    <p class="text-body">
+                      {{ propertyStore?.dataProperty?.profile?.role?.description }}
+                    </p>
+                  </router-link>
+                  <ul class="list-unstyled border-bottom mb-4 d-flex gap-3">
+                    <li v-if="propertyStore?.dataProperty?.profile?.user?.phone_number">
+                      <a
+                        class="nav-link fw-normal p-0"
+                        href="https://wa.me/{{ propertyStore?.dataProperty?.profile?.user?.phone_number }}"
+                        target="_blank"
+                        ><i class="fi-phone mt-n1 me-2 align-middle opacity-60"></i
+                      ></a>
+                    </li>
+                    <li v-if="propertyStore?.dataProperty?.profile?.user?.email">
+                      <a class="nav-link fw-normal p-0" href="mailto:floyd_miles@email.com"
+                        ><i class="fi-mail mt-n1 me-2 align-middle opacity-60"></i
+                      ></a>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
-            <ul class="list-unstyled border-bottom mb-4 pb-4">
-              <li>
-                <a class="nav-link fw-normal p-0" href="tel:3025550107"
-                  ><i class="fi-phone mt-n1 me-2 align-middle opacity-60"></i
-                  >{{ propertyStore?.dataProperty?.profile?.user?.phone_number }}</a
-                >
-              </li>
-              <li>
-                <a class="nav-link fw-normal p-0" href="mailto:floyd_miles@email.com"
-                  ><i class="fi-mail mt-n1 me-2 align-middle opacity-60"></i
-                  >{{ propertyStore?.dataProperty?.profile?.user?.email }}</a
-                >
-              </li>
-            </ul>
+
             <!-- Contact form-->
             <FormContact
               :agent-id="propertyStore?.dataProperty?.profile?.id"
@@ -738,7 +774,6 @@ const getVimeoEmbedUrl = function (url: string) {
   grid-template-columns: repeat(3, 1fr);
 
   gap: 8px;
-  height: 60vh;
 }
 
 .div1 {
@@ -854,5 +889,9 @@ const getVimeoEmbedUrl = function (url: string) {
   .placeholder-content {
     min-height: 200px;
   }
+}
+
+.perfil-header {
+  /* gap: 15px; */
 }
 </style>

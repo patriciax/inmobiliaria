@@ -57,7 +57,7 @@ const updateBreadcrumb = () => {
 }
 
 // Estado local para la tab activa
-const activeTab = ref('for-sale')
+const activeTab = ref('all-properties') // 'all-properties', 'for-rent', 'for-sale'
 
 // Propiedades computadas para cada categoría
 const rentProperties = computed(() => propertiesStore.rentProperties)
@@ -138,8 +138,8 @@ const switchTab = (tabName: string, event: Event) => {
     <div class="row">
       <Sidebar>
         <!-- Nav tabs + Sorting-->
-        <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between mb-4">
-          <ul class="nav nav-tabs flex-nowrap mb-sm-0" role="tablist">
+        <div class="d-flex  flex-sm-row align-items-center text-center mb-4 justify-content-center">
+          <ul class="nav nav-tabs flex-nowrap mb-sm-0 d-flex align-items-center" role="tablist">
             <li class="nav-item">
               <a
                 class="nav-link fs-sm"
@@ -192,6 +192,103 @@ const switchTab = (tabName: string, event: Event) => {
           >
             Reintentar
           </button>
+        </div>
+        
+        <!-- ALL PROPERTIES -->
+        <div v-else-if="activeTab === 'all-properties'">
+          
+          <div v-if="propertiesStore.properties.length === 0" class="text-center py-5">
+            <i class="fi-home display-4 text-muted mb-3"></i>
+            <h4>No hay propiedades disponibles</h4>
+            <p class="text-muted">El agente no tiene propiedades en este momento.</p>
+          </div>
+          
+          <div v-else class="row g-4 g-md-3 g-lg-4 pt-2">
+            <!-- Item-->
+            <div
+              v-for="(property, index) in propertiesStore.properties"
+              :key="property.id"
+              class="col-sm-6 col-xl-4"
+            >
+            <div v-if="property.status.description != 'Borrador'" class="card shadow-sm card-hover border-0 h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover">
+                    <router-link class="img-overlay" :to="`/real-estate-single-v1/${property.id}`"></router-link>
+                    
+                    <!-- Badge de estado -->
+                    <div class="position-absolute start-0 top-0 pt-3 ps-3">
+                      <span
+                        :class="`d-table badge bg-${propertiesStore.getBadgeColor(property.status.description)} mb-1`"
+                      >
+                        {{ property.status.description }}
+                      </span>
+                      <span class="d-table badge bg-info mb-1">
+                        {{ property.type.description }}
+                      </span>
+                    </div>
+                    
+                    <!-- Wishlist button -->
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button
+                        class="btn btn-icon btn-light btn-xs text-primary rounded-circle"
+                        type="button"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="left"
+                        title="Add to Wishlist"
+                      >
+                        <i class="fi-heart"></i>
+                      </button>
+                    </div>
+                    
+                    <!-- Images carousel -->
+                    <div >
+                      <img 
+                          :src="property.images[0]?.url.thumbnail" 
+                          alt="Imagen por defecto" 
+                          style="height: 199px; width: 100%; object-fit: cover;" 
+                  referrerPolicy="no-referrer"
+                        />
+                    </div>
+                  </div>
+                  
+                  <div class="card-body position-relative pb-3">
+                    <h4 class="mb-1 fs-xs fw-normal text-uppercase text-primary">
+                      {{ property.category.description }}
+                    </h4>
+                    <h3 class="h6 mb-2 fs-base">
+                      <router-link 
+                        class="nav-link stretched-link" 
+                        :to="`/real-estate-single-v1/${property.id}`"
+                      >
+                        {{ property.title }}
+                      </router-link>
+                    </h3>
+                    <p class="mb-2 fs-sm text-muted">{{ formatLocation(property) }}</p>
+                    <div class="fw-bold">
+                      <i class="fi-cash mt-n1 me-2 lead align-middle opacity-70"></i>
+                      {{ propertiesStore.formatPrice(property.price, property.currency.abbreviation) }}
+                    </div>
+                  </div>
+                  
+                  <div class="card-footer d-flex align-items-center justify-content-center mx-3 pt-3 text-nowrap">
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.rooms }}<i class="fi-bed ms-1 mt-n1 fs-lg text-muted"></i>
+                    </span>
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.bathrooms }}<i class="fi-bath ms-1 mt-n1 fs-lg text-muted"></i>
+                    </span>
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.parkings }}<i class="fi-car ms-1 mt-n1 fs-lg text-muted"></i>
+                    </span>
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.area }}m²
+                    </span>
+                    <span v-if="property.pets" class="d-inline-block mx-1 px-2 fs-sm">
+                       <img src="@/assets/img/paw.png" alt="Pet Friendly" width="20" height="20" title="Pet Friendly" style="    filter: opacity(.4);" />
+                    </span>
+                  </div>
+                </div>
+            </div>
+          </div>
         </div>
 
         <!-- Content with tabs -->

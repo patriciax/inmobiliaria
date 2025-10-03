@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Form from '../../../public/form.vue'
 import { usePropertiesStore } from '@/stores/tarjetaDigital'
-
+import avatar from '@/assets/img/avatars/14.png'
 // Interfaz para los datos del agente
 interface AgentInfo {
   id: number
@@ -48,7 +48,7 @@ const defaultAgent: AgentInfo = {
   last_name: 'Miles',
   email: 'floyd_miles@email.com',
   phone_number: '(302) 555-0107',
-  avatar: '@/assets/img/avatars/31.jpg',
+  avatar: avatar,
   company: 'Imperial Property Group Agent',
   social: undefined
 }
@@ -131,8 +131,10 @@ const agentStats = computed(() => {
       <img 
         class="d-block rounded-circle mx-auto mb-3" 
         :src="agentInfo.avatar" 
-        width="120" 
+        width="90" 
         :alt="fullName" 
+          crossorigin="anonymous"
+                  referrerPolicy="no-referrer"
       />
       
       <!-- Información del agente -->
@@ -140,7 +142,7 @@ const agentStats = computed(() => {
       <p class="text-center mb-2 pb-1">{{ agentInfo.company }}</p>
       
       <!-- Estadísticas del agente -->
-      <div class="d-flex justify-content-center mb-3">
+      <!-- <div class="d-flex justify-content-center mb-3">
         <div class="text-center mx-2">
           <div class="fs-lg fw-bold text-primary">{{ agentStats.total }}</div>
           <div class="fs-sm text-muted">Propiedades</div>
@@ -153,11 +155,11 @@ const agentStats = computed(() => {
           <div class="fs-lg fw-bold text-warning">{{ agentStats.sale }}</div>
           <div class="fs-sm text-muted">Venta</div>
         </div>
-      </div>
+      </div> -->
       
       <!-- Redes sociales -->
       <div class="text-center" v-if="agentInfo.social">
-        <a 
+        <!-- <a 
           v-if="agentInfo.social.facebook"
           class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm me-2" 
           :href="agentInfo.social.facebook"
@@ -180,15 +182,15 @@ const agentStats = computed(() => {
           target="_blank"
         >
           <i class="fi-twitter"></i>
-        </a>
-        <a 
+        </a> -->
+        <!-- <a 
           v-if="agentInfo.social.messenger"
           class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm me-2" 
           :href="agentInfo.social.messenger"
           target="_blank"
         >
           <i class="fi-messenger"></i>
-        </a>
+        </a> -->
       <a>
           class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm me-2" 
           :href="agentInfo.social.messenger"
@@ -200,7 +202,7 @@ const agentStats = computed(() => {
       
       <!-- Redes sociales por defecto si no hay datos específicos -->
       <div v-else class="text-center">
-        <a class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm me-2" href="javascript:void(0);">
+        <!-- <a class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm me-2" href="javascript:void(0);">
           <i class="fi-facebook"></i>
         </a>
         <a class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm me-2" href="javascript:void(0);">
@@ -211,8 +213,11 @@ const agentStats = computed(() => {
         </a>
         <a class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm me-2" href="javascript:void(0);">
           <i class="fi-messenger"></i>
+        </a> -->
+        <a :href="`https://wa.me/${agentInfo.phone_number}`" target="_blank" class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm">
+          <i class="fi-whatsapp"></i>
         </a>
-        <a class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm" href="javascript:void(0);">
+        <a class="btn btn-icon btn-light-primary btn-xs rounded-circle shadow-sm" :href="`mailto:${agentInfo.email}`">
           <i class="fi-mail"></i>
         </a>
       </div>
@@ -235,7 +240,7 @@ const agentStats = computed(() => {
       </div>
       
       <!-- Información de contacto -->
-      <ul class="d-table list-unstyled mx-auto mx-md-0 mb-3 mb-md-4 mt-2">
+      <!-- <ul class="d-table list-unstyled mx-auto mx-md-0 mb-3 mb-md-4 mt-2">
         <li class="mb-2">
           <a 
             class="nav-link fw-normal p-0" 
@@ -252,7 +257,7 @@ const agentStats = computed(() => {
             <i class="fi-mail text-primary mt-n1 me-2 align-middle"></i>{{ agentInfo.email }}
           </a>
         </li>
-      </ul>
+      </ul> -->
     </div>
   </aside>
 
