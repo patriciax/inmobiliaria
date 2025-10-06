@@ -24,6 +24,8 @@ L.Icon.Default.mergeOptions({
 import 'lightgallery/scss/lightgallery.scss'
 import { usePropertyStore } from '@/stores/propertys'
 import router from '@/router'
+import { Toast } from 'bootstrap'
+import { toast } from 'vue3-toastify'
 
 const propertyStore = usePropertyStore()
 const mapRef = ref<InstanceType<typeof LMap> | null>(null)
@@ -58,7 +60,7 @@ const tabs = [
   { id: 'video', label: 'Video', activeTab: !!propertyStore?.dataProperty?.details?.video_url },
   { id: 'tour', label: 'Tour', activeTab: !!propertyStore?.dataProperty?.details?.view360_url },
   { id: 'mapa', label: 'Mapa', activeTab: !!propertyStore?.dataProperty?.details?.map_url },
-  { id: 'streetview', label: 'Street View' }
+  { id: 'streetview', label: 'Explorar entorno' }
 ]
 
 const activeTab = ref('fotos')
@@ -238,6 +240,20 @@ const getVimeoEmbedUrl = function (url: string) {
 
   return `https://player.vimeo.com/video/${videoId}`
 }
+
+const copyLinkToClipboard = () => {
+  const url = window.location.href
+  navigator.clipboard
+    .writeText(url)
+    .then(() => {
+      toast.success('¡Enlace copiado al portapapeles!', {
+        
+      })
+    })
+    .catch((err) => {
+      console.error('Error al copiar el enlace: ', err)
+    })
+}
 </script>
 
 <template>
@@ -249,7 +265,17 @@ const getVimeoEmbedUrl = function (url: string) {
     <section class="d-flex justify-content-between w-full">
       <div>
         <h1 class="h2 mb-2">{{ propertyStore?.dataProperty?.title }}</h1>
-        <p class="mb-2 pb-1 fs-lg">{{ propertyStore?.dataProperty?.location }}</p>
+        <!-- <p class="mb-2 pb-1 fs-lg">{{ propertyStore?.dataProperty?.location }}</p> -->
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">{{ propertyStore?.dataProperty?.city?.country_name }}</li>
+          <li class="breadcrumb-item">{{ propertyStore?.dataProperty?.city?.name }}</li>
+          <li class="breadcrumb-item active">{{ propertyStore?.dataProperty?.neighborhood }}</li>
+        </ol>
+        <!-- <div>
+          <span class="badge bg-success me-2 mb-3">Verified</span
+          ><span class="badge bg-info me-2 mb-3">New</span>
+        </div> -->
+
         <!-- Features + Sharing-->
         <div class="d-flex justify-content-between align-items-center">
           <ul class="d-flex mb-4 list-unstyled">
@@ -266,7 +292,16 @@ const getVimeoEmbedUrl = function (url: string) {
               <i class="fi-car mt-n1 lead align-middle text-muted"></i>
             </li>
             <li>
-              <b>{{ propertyStore?.dataProperty?.area }} </b>sq.m
+              <b>{{ propertyStore?.dataProperty?.area }} </b>
+              <img
+                class="mt-n1 me-2 fs-lg align-middl"
+                src="@/assets/img/rule.png"
+                alt="Pet Friendly"
+                width="25"
+                height="25"
+                title="Pet Friendly"
+                style="filter: opacity(0.6); margin-left: 6px"
+              />
             </li>
           </ul>
         </div>
@@ -282,14 +317,20 @@ const getVimeoEmbedUrl = function (url: string) {
         </div>
 
         <div class="text-nowrap text-end">
-          <button
-            class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle ms-2 mb-2"
+                <div>
+        </div>
+
+          <span
+           class="badge bg-info me-2 mb-3"
             type="button"
             data-bs-toggle="tooltip"
-            title="Add to Wishlist"
+            title="Copiar enlace"
+            @click="copyLinkToClipboard"
           >
-           <!-- {{ propertyStore?.dataProperty?.favorite }} -->
-          </button>
+          <span class="">Compartir enlace</span>
+
+            <!-- {{ propertyStore?.dataProperty?.favorite }} -->
+          </span>
           <div class="dropdown d-inline-block" data-bs-toggle="tooltip" title="Share">
             <button
               class="btn btn-icon btn-light-primary btn-xs shadow-sm rounded-circle ms-2 mb-2"
@@ -507,11 +548,20 @@ const getVimeoEmbedUrl = function (url: string) {
         <div class="mb-4 pb-md-3">
           <h3 class="h4">Descripción general</h3>
           <p class="mb-1">
-            {{ propertyStore?.dataProperty?.observations || 'No hay descripción disponible.' }}
+            {{
+              propertyStore?.dataProperty?.details?.description || 'No hay descripción disponible.'
+            }}
           </p>
-          <div class="collapse" id="seeMoreOverview" v-if="propertyStore?.dataProperty?.notes">
+          <div
+            class="collapse"
+            id="seeMoreOverview"
+            v-if="propertyStore?.dataProperty?.property_condition?.description"
+          >
             <p class="mb-1">
-              {{ propertyStore?.dataProperty?.notes }}
+              {{
+                propertyStore?.dataProperty?.property_condition?.description ||
+                'No hay descripción disponible.'
+              }}
             </p>
           </div>
           <a

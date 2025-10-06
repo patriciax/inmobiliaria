@@ -41,6 +41,16 @@ export const routes = [
         }
     },
     {
+        path: '/catalogo',
+        name: 'Catalogo',
+
+        component: () => import('@/views/public/catalog/catalogo.vue'),
+        meta: {
+            title: 'Property For Rent',
+            layout: DefaultLayoutPublic
+        }
+    },
+    {
         path: '/real-estate-home-v2',
         name: 'Home-2',
         component: () => import('@/views/real-estate/home-2/index.vue'),
