@@ -17,8 +17,13 @@ export interface UserData {
   created_at?: string
   updated_at?: string
   category_id?: number
-  city?: number
-  property_condition?: string
+  city?: {
+    country_name?: string
+    name: string
+  }
+  property_condition?:{
+    description?: string
+  }
   neighborhood?: string
   category?: {
     id: number
