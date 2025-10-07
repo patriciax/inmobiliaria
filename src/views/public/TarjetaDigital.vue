@@ -242,11 +242,13 @@ const switchTab = (tabName: string, event: Event) => {
                     <!-- Images carousel -->
                     <div >
                       <img 
-                          :src="property.images[0]?.url.thumbnail" 
+                          :src="property.images[0]?.url?.thumbnail " 
                           alt="Imagen por defecto" 
                           style="height: 199px; width: 100%; object-fit: cover;" 
                   referrerPolicy="no-referrer"
                         />
+
+                        
                     </div>
                   </div>
                   

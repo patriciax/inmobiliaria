@@ -5,7 +5,15 @@ import { computed, ref } from "vue"
 // Interfaces basadas en tu API
 interface PropertyImage {
   id: number
-  url: string
+  url: url
+  thumbnail: string | null
+  thumbnail_small: string | null 
+}
+
+interface url {
+  full: string
+  medium?: string
+  thumbnail?: string
 }
 
 interface PropertyCity {
@@ -63,6 +71,7 @@ interface Property {
   city: PropertyCity
   area: number
   rooms: number
+  pets: boolean
   bathrooms: number
   parkings: number
   category: PropertyCategory
@@ -75,6 +84,7 @@ interface Property {
   profile: PropertyProfile
   PropertyContact: any[]
   images: PropertyImage[]
+  thumbnail : string | null
 }
 
 interface ApiResponse {
