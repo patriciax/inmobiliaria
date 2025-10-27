@@ -95,18 +95,43 @@ const publishedImages = computed(() => {
 })
 
 // Método para asignar las clases CSS del grid basado en el índice
+// const getGridClass = (index: number) => {
+//   const classes = ['div1', 'div2', 'div3', 'div4', 'div5', 'div6']
+//   const additionalClasses: { [key: number]: string } = {
+//     1: 'mb-2 mb-md-3' // Para la segunda imagen (índice 1)
+//   }
+
+//   const baseClass = classes[index % classes.length] || 'div1'
+//   const extraClass = additionalClasses[index] || ''
+
+//   return `${baseClass} ${extraClass}`.trim()
+// }
+// Método para asignar las clases CSS del grid basado en el índice
 const getGridClass = (index: number) => {
-  const classes = ['div1', 'div2', 'div3', 'div4', 'div5', 'div6']
-  const additionalClasses: { [key: number]: string } = {
-    1: 'mb-2 mb-md-3' // Para la segunda imagen (índice 1)
+  const totalImages = publishedImages.value.length
+  
+  // Si hay 6 o menos imágenes, usar el patrón original
+  if (totalImages <= 6) {
+    const classes = ['div1', 'div2', 'div3', 'div4', 'div5', 'div6']
+    return classes[index] || 'div1'
   }
-
-  const baseClass = classes[index % classes.length] || 'div1'
-  const extraClass = additionalClasses[index] || ''
-
-  return `${baseClass} ${extraClass}`.trim()
+  
+  // Para más de 6 imágenes, usar un patrón repetitivo más compacto
+  const pattern = index % 6
+  switch (pattern) {
+    case 0:
+      return 'grid-large' // Imagen grande 2x2
+    case 1:
+    case 2:
+      return 'grid-small' // Imágenes pequeñas 1x1
+    case 3:
+    case 4:
+    case 5:
+      return 'grid-medium' // Imágenes medianas 1x1
+    default:
+      return 'grid-small'
+  }
 }
-
 // Función para manejar cuando el mapa está listo
 const onMapReady = () => {
   console.log('Mapa listo')
