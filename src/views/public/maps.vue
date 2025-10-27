@@ -159,7 +159,7 @@
               <template v-for="property in visibleProperties" :key="property.id">
                 <LMarker
                   v-if="property.latitude && property.longitude"
-                  :lat-lng="[property.latitude, property.longitude]"
+                  :lat-lng="getLatLng(property)"
                   :icon="getCustomIcon(property) as any"
                   @click="onMarkerClick(property)"
                 >
@@ -248,6 +248,11 @@ const fitMapBounds = () => {
   )
   
   map.fitBounds(bounds, { padding: [50, 50] })
+}
+
+// Helper para obtener LatLng en formato correcto
+const getLatLng = (property: any) => {
+  return L.latLng(property.latitude, property.longitude)
 }
 
 // Crear icono personalizado con precio
