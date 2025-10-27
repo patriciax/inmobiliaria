@@ -1,6 +1,6 @@
 <template>
     <div class="property-map-search">
-      <div class="container-fluid px-0 overflow-hidden">
+      <div class="container-fluid px-0">
         <!-- Barra de búsqueda -->
         <div class="search-bar bg-light p-4">
           <div class="container">
@@ -159,8 +159,8 @@
                 <template v-for="property in visibleProperties" :key="property.id">
                   <LMarker
                     v-if="property.latitude && property.longitude"
-                    :lat-lng="[property.latitude, property.longitude]"
-                    :icon="getCustomIcon(property)"
+                    :lat-lng="[property.latitude, property.longitude] as [number, number]"
+                    :icon="getCustomIcon(property) as any"
                     @click="onMarkerClick(property)"
                   >
                     <LPopup>
@@ -195,7 +195,7 @@
   import { ref, computed, onMounted, watch, nextTick } from 'vue'
   import { useGeoSearchStore } from '@/stores/geoSearchStore'
   import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
-  import L from 'leaflet'
+  import L, { type LatLngExpression } from 'leaflet'
   import 'leaflet/dist/leaflet.css'
   
   // Solución para los iconos de Leaflet
@@ -212,8 +212,8 @@
   const mapReady = ref(false)
   const mapZoom = ref(12)
   
-  const mapCenter = computed(() => {
-    return [geoStore.mapCenter.lat, geoStore.mapCenter.lng]
+  const mapCenter = computed<LatLngExpression>(() => {
+    return [geoStore.mapCenter.lat, geoStore.mapCenter.lng] as [number, number]
   })
   
   // Filtrar propiedades con coordenadas válidas
@@ -251,7 +251,7 @@
   }
   
   // Crear icono personalizado con precio
-  const getCustomIcon = (property: any) => {
+  const getCustomIcon = (property: any): L.DivIcon => {
     const price = formatPrice(property.price, property.currency?.abbreviation)
     const isSelected = geoStore.selectedProperty?.id === property.id
     
@@ -392,7 +392,6 @@
   <style scoped>
   .property-map-search {
     min-height: 100vh;
-    margin-top: 7rem;
   }
   
   .property-list {
