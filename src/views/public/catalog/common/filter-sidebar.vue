@@ -151,6 +151,21 @@ const filterByPrice = async () => {
     console.error('Error al llamar el servicio:', error)
   }
 }
+
+const search = ref('')
+const searchProperties = async () => {
+  try {
+    console.log('Buscando propiedades con:', search.value)
+    const response = await propertyStore.getSearchPropertiesPublic(
+      1,
+      10,
+      search.value
+    )
+    console.log('Datos recibidos:', response)
+  } catch (error) {
+    console.error('Error al buscar propiedades:', error)
+  }
+}
 </script>
 
 <template>
@@ -184,9 +199,15 @@ const filterByPrice = async () => {
         </ul>
       </div>
       <div class="offcanvas-body py-lg-4">
+        <div class="pb-4 m">
+          <h3 class="h6 pt-1">Buscar </h3>
+       <div class="d-flex align-items-center gap-2">
+        <input type="text" class="form-control" placeholder="Buscar propiedad" v-model="search" @keyup.enter="searchProperties"   />
+        <button class="btn btn-primary " :disabled="!search" @click="searchProperties">Buscar</button>
+       </div>
+        </div>
         <div class="pb-4 mb-2">
           <h3 class="h6">Ubicación</h3>
-
           <select
             class="form-select mb-2"
             v-model="selectedCountryId"

@@ -198,6 +198,40 @@ export const usePropertyStore = defineStore('property', () => {
   }
   
 
+  const getSearchPropertiesPublic = async (
+    page: number = 1,
+    pageSize: number = 10,
+   search: string = '',
+  ): Promise<UserData[] | null> => {
+    isLoading.value = true
+    error.value = null
+  
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+      })
+  
+      if (search) params.append("search", search)
+  
+      const response = await api.get<PropertyResponse>(`/public/properties/all/?${params.toString()}`)
+  
+      if (!response.data || response.data.length === 0) {
+        return null
+      }
+  
+      property.value = response.data
+      pagination.value = response.pagination
+      return response.data
+    } catch (err: any) {
+      error.value = err.message || 'Error al obtener las propiedades'
+      toast.error(error.value)
+      return null
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const getProperties = async (page: number = 1, pageSize: number = 10): Promise<UserData[] | null> => {
     isLoading.value = true
     error.value = null
@@ -233,8 +267,6 @@ export const usePropertyStore = defineStore('property', () => {
       isLoading.value = false
     }
   }
-
-  // Funciones de navegación de paginación
   const goToPage = async (page: number) => {
     if (page >= 1 && page <= pagination.value.totalPages) {
       await getPropertiesPublic(page, pagination.value.pageSize)
@@ -270,6 +302,7 @@ export const usePropertyStore = defineStore('property', () => {
     goToPage,
     nextPage,
     prevPage,
+    getSearchPropertiesPublic,
   }
 }, {
   // persist: {
