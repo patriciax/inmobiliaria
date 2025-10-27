@@ -51,6 +51,15 @@ export const routes = [
         }
     },
     {
+        path: '/search-map',
+        name: 'SearchMap',
+        component: () => import('@/views/public/maps.vue'),
+        meta: {
+            title: 'Search Map',
+            layout: DefaultLayout
+        }
+      },
+    {
         path: '/real-estate-home-v2',
         name: 'Home-2',
         component: () => import('@/views/real-estate/home-2/index.vue'),

@@ -6,6 +6,7 @@ import Filter from './common/filter-sidebar.vue'
 import Breadcrumb from '@/components/Breadcrumb.vue'
 import { usePropertyStore } from '@/stores/propertys'
 import { useAuthStore } from '@/stores/auth'
+import router from '@/router'
 
 const authStore = useAuthStore()
 const propertyStore = usePropertyStore()
@@ -111,14 +112,14 @@ const handlePageChange = async (page: number) => {
         <!-- Title-->
         <div class="d-sm-flex align-items-center justify-content-between pb-3 pb-sm-4">
           <h1 class="h2 mb-sm-0">Catalogo</h1>
-          <a
+          <router-link
             class="d-inline-block fw-bold text-decoration-none py-1"
-            href="javascript:void(0);"
             data-bs-toggle-class="invisible"
             data-bs-target="#map"
+            to="/search-map"
           >
             <i class="fi-map me-2"></i>Ver mapa
-          </a>
+          </router-link>
         </div>
 
         <!-- Sorting-->
