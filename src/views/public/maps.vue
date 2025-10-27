@@ -145,7 +145,7 @@
             <LMap
               ref="mapRef"
               :zoom="mapZoom"
-              :center="mapCenter"
+              :center="[geoStore.mapCenter.lat, geoStore.mapCenter.lng]"
               :use-global-leaflet="false"
               style="height: 100%; width: 100%; z-index: 1;"
               @ready="onMapReady"
@@ -211,10 +211,6 @@ const mapRef = ref<InstanceType<typeof LMap> | null>(null)
 const searchRadius = ref(30)
 const mapReady = ref(false)
 const mapZoom = ref(12)
-
-const mapCenter = computed(() => {
-  return [geoStore.mapCenter.lat, geoStore.mapCenter.lng]
-})
 
 // Filtrar propiedades con coordenadas válidas
 const visibleProperties = computed(() => {
