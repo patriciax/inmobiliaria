@@ -7,10 +7,12 @@ import Breadcrumb from '@/components/Breadcrumb.vue'
 import { usePropertyStore } from '@/stores/propertys'
 import { useAuthStore } from '@/stores/auth'
 import router from '@/router'
+import Maps from '../maps.vue'
 
 const authStore = useAuthStore()
 const propertyStore = usePropertyStore()
-
+const tabCards = ref(true)
+const tabMap = ref(false)
 const breadcrumbData = ref([
   {
     title: 'Inicio',
@@ -78,13 +80,27 @@ const handlePageChange = async (page: number) => {
     await propertyStore.goToPage(page)
   }
 }
+
+const tabsSingle = (tab: string) => {
+  if (tab === 'cards') {
+    tabCards.value = true
+    tabMap.value = false
+  } else if (tab === 'map') {
+    tabCards.value = false
+    tabMap.value = true
+  }
+}
+const filters = ref<any>({})
+const searchProperties = async (filtersParams: any) => {
+  filters.value = filtersParams
+}
 </script>
 
 <template>
   <div class="container-fluid mt-4 pt-5">
     <div class="row g-0 mt-n3">
       <!-- Filters sidebar (Offcanvas on mobile)-->
-      <Filter :slider="sliderData" />
+      <Filter :slider="sliderData"  @search="searchProperties"/>
 
       <!-- Page content-->
       <div
@@ -111,15 +127,40 @@ const handlePageChange = async (page: number) => {
 
         <!-- Title-->
         <div class="d-sm-flex align-items-center justify-content-between pb-3 pb-sm-4">
-          <h1 class="h2 mb-sm-0">Catalogo</h1>
-          <router-link
+          <h1 class="h2 mb-sm-0">
+            <span v-text=" tabCards ? 'Catálogo' : 'Mapa de inmuebles'"/>
+          </h1>
+          <!-- <router-link
             class="d-inline-block fw-bold text-decoration-none py-1"
             data-bs-toggle-class="invisible"
             data-bs-target="#map"
             to="/search-map"
           >
             <i class="fi-map me-2"></i>Ver mapa
-          </router-link>
+          </router-link> -->
+          
+          <div class="btn-group btn-group-toggle ms-3" role="group" aria-label="View mode">
+            <button
+              v-if="tabMap"
+              type="button"
+              class="btn btn-outline-secondary"
+              :class="{ active: tabCards }"
+              @click="tabsSingle('cards')"
+              title="Card View"
+            >
+             Ver Catalogo <i class="fi-layout-grid-view"></i>
+            </button>
+            <button
+              v-if="tabCards"
+              type="button"
+              class="btn btn-outline-secondary"
+              :class="{ active: tabMap }"
+              @click="tabsSingle('map')"
+              title="Map View"
+            >
+             Ver mapa  <i class="fi-map ms-1"></i>
+            </button>
+        </div>
         </div>
 
         <!-- Sorting-->
@@ -151,215 +192,234 @@ const handlePageChange = async (page: number) => {
           </div>
         </div>
 
-        <!-- Catalog grid-->
-        <div v-else class="row g-4 py-4">
-          <!-- Item-->
-          <div
-            v-for="(property, index) in propertyStore.property"
-            :key="property.id || index"
-            class="col-sm-6 col-xl-4"
-          >
-            <div class="card shadow-sm card-hover border-0 h-100">
-              <div class="tns-carousel-wrapper card-img-top card-img-hover">
-                <router-link
-                  class="img-overlay"
-                  :to="`/real-estate-single-v1/${property.id}`"
-                ></router-link>
-                <div v-if="property.badge" class="position-absolute start-0 top-0 pt-3 ps-3">
-                  <span
-                    v-for="badge in property.badge"
-                    :class="`d-table badge bg-${getBadgeColor(badge)} mb-1`"
-                    >{{ badge }}</span
-                  >
-                </div>
-                <div class="content-overlay end-0 top-0 pt-3 pe-3">
-                  <button
-                    class="btn btn-icon btn-light btn-xs text-primary rounded-circle"
-                    type="button"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="left"
-                    title="Add to Wishlist"
-                  >
-                    <i class="fi-heart"></i>
-                  </button>
-                </div>
-                <Swiper
-                  v-if="property.images"
-                  :slidesPerView="1"
-                  :loop="true"
-                  :initialSlide="property.images.length - 1"
-                >
-                  >
-                  <SwiperSlide v-for="(image, index) in property.images" :key="index">
-                    <img
-                      :src="image.url.thumbnail"
-                      alt="Image"
-                      @error="imageNotFound"
-                      class="w-100 d-block h-20"
-                    />
-                  </SwiperSlide>
-                </Swiper>
-              </div>
-              <div class="card-body position-relative pb-3">
-                <h4 class="mb-1 fs-xs fw-normal text-uppercase text-primary">
-                  {{ property.type?.name }}
-                </h4>
-                <h3 class="h6 mb-2 fs-base">
-                  <router-link
-                    class="nav-link stretched-link"
-                    :to="`/real-estate-single-v1/${property.id}`"
-                    >{{ property.title }}</router-link
-                  >
-                </h3>
-                <p class="mb-2 fs-sm text-muted">{{ property.location }}</p>
-                <div class="fw-bold">
-                  <i class="fi-cash mt-n1 me-2 lead align-middle opacity-70"></i
-                  >{{ property.price }}
-                </div>
-              </div>
+        <section v-else>
+          <section v-if="tabCards">
+            <!-- Catalog grid-->
+            <div class="row g-4 py-4">
+              <!-- Item-->
               <div
-                class="card-footer d-flex align-items-center justify-content-center mx-3 pt-3 text-nowrap"
+                v-for="(property, index) in propertyStore.property"
+                :key="property.id || index"
+                class="col-sm-6 col-xl-4"
               >
-                <span class="d-inline-block mx-1 px-2 fs-sm">
-                  {{ property.rooms }}<i class="fi-bed ms-1 mt-n1 fs-lg text-muted"></i>
-                </span>
-                <span class="d-inline-block mx-1 px-2 fs-sm">
-                  {{ property.bathrooms }}<i class="fi-bath ms-1 mt-n1 fs-lg text-muted"></i>
-                </span>
-                <span class="d-inline-block mx-1 px-2 fs-sm">
-                  {{ property.parkings }}<i class="fi-car ms-1 mt-n1 fs-lg text-muted"></i>
-                </span>
-                <span class="d-inline-block mx-1 px-2 fs-sm"> {{ property.area }} m² </span>
-                <span v-if="property.pets" class="d-inline-block mx-1 px-2 fs-sm">
-                       <img src="@/assets/img/paw.png" alt="Pet Friendly" width="20" height="20" title="Pet Friendly" style="    filter: opacity(.4);" />
+                <div class="card shadow-sm card-hover border-0 h-100">
+                  <div class="tns-carousel-wrapper card-img-top card-img-hover">
+                    <router-link
+                      class="img-overlay"
+                      :to="`/real-estate-single-v1/${property.id}`"
+                    ></router-link>
+                    <div v-if="property.badge" class="position-absolute start-0 top-0 pt-3 ps-3">
+                      <span
+                        v-for="badge in property.badge"
+                        :class="`d-table badge bg-${getBadgeColor(badge)} mb-1`"
+                        >{{ badge }}</span
+                      >
+                    </div>
+                    <div class="content-overlay end-0 top-0 pt-3 pe-3">
+                      <button
+                        class="btn btn-icon btn-light btn-xs text-primary rounded-circle"
+                        type="button"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="left"
+                        title="Add to Wishlist"
+                      >
+                        <i class="fi-heart"></i>
+                      </button>
+                    </div>
+                    <Swiper
+                      v-if="property.images"
+                      :slidesPerView="1"
+                      :loop="true"
+                      :initialSlide="property.images.length - 1"
+                    >
+                      >
+                      <SwiperSlide v-for="(image, index) in property.images" :key="index">
+                        <img
+                          :src="image.url.thumbnail"
+                          alt="Image"
+                          @error="imageNotFound"
+                          class="w-100 d-block h-20"
+                        />
+                      </SwiperSlide>
+                    </Swiper>
+                  </div>
+                  <div class="card-body position-relative pb-3">
+                    <h4 class="mb-1 fs-xs fw-normal text-uppercase text-primary">
+                      {{ property.type?.name }}
+                    </h4>
+                    <h3 class="h6 mb-2 fs-base">
+                      <router-link
+                        class="nav-link stretched-link"
+                        :to="`/real-estate-single-v1/${property.id}`"
+                        >{{ property.title }}</router-link
+                      >
+                    </h3>
+                    <p class="mb-2 fs-sm text-muted">{{ property.location }}</p>
+                    <div class="fw-bold">
+                      <i class="fi-cash mt-n1 me-2 lead align-middle opacity-70"></i
+                      >{{ property.price }}
+                    </div>
+                  </div>
+                  <div
+                    class="card-footer d-flex align-items-center justify-content-center mx-3 pt-3 text-nowrap"
+                  >
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.rooms }}<i class="fi-bed ms-1 mt-n1 fs-lg text-muted"></i>
                     </span>
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.bathrooms }}<i class="fi-bath ms-1 mt-n1 fs-lg text-muted"></i>
+                    </span>
+                    <span class="d-inline-block mx-1 px-2 fs-sm">
+                      {{ property.parkings }}<i class="fi-car ms-1 mt-n1 fs-lg text-muted"></i>
+                    </span>
+                    <span class="d-inline-block mx-1 px-2 fs-sm"> {{ property.area }} m² </span>
+                    <span v-if="property.pets" class="d-inline-block mx-1 px-2 fs-sm">
+                      <img
+                        src="@/assets/img/paw.png"
+                        alt="Pet Friendly"
+                        width="20"
+                        height="20"
+                        title="Pet Friendly"
+                        style="filter: opacity(0.4)"
+                      />
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Empty state -->
+              <div
+                v-if="!propertyStore.isLoading && propertyStore.property.length === 0"
+                class="col-12 text-center py-5"
+              >
+                <div class="text-muted">
+                  <i class="fi-home fs-1 mb-3"></i>
+                  <h5>No se encontraron propiedades</h5>
+                  <p>Intenta ajustar los filtros de búsqueda</p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Empty state -->
-          <div
-            v-if="!propertyStore.isLoading && propertyStore.property.length === 0"
-            class="col-12 text-center py-5"
-          >
-            <div class="text-muted">
-              <i class="fi-home fs-1 mb-3"></i>
-              <h5>No se encontraron propiedades</h5>
-              <p>Intenta ajustar los filtros de búsqueda</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pagination-->
-        <nav
-          v-if="propertyStore.pagination.totalPages > 1"
-          class="border-top pb-md-4 pt-4 mt-2"
-          aria-label="Pagination"
-        >
-          <ul class="pagination mb-1 justify-content-center">
-            <!-- Mobile page indicator -->
-            <li class="page-item d-sm-none">
-              <span class="page-link page-link-static">
-                {{ propertyStore.pagination.currentPage }} /
-                {{ propertyStore.pagination.totalPages }}
-              </span>
-            </li>
-
-            <!-- Previous button -->
-            <li class="page-item" :class="{ disabled: !propertyStore.pagination.hasPrevPage }">
-              <button
-                class="page-link"
-                @click="propertyStore.prevPage()"
-                :disabled="!propertyStore.pagination.hasPrevPage"
-                aria-label="Previous"
-              >
-                <i class="fi-chevron-left"></i>
-              </button>
-            </li>
-
-            <!-- First page (if not in visible range) -->
-            <li v-if="visiblePages[0] > 1" class="page-item d-none d-sm-block">
-              <button class="page-link" @click="handlePageChange(1)">1</button>
-            </li>
-
-            <!-- Ellipsis before visible pages -->
-            <li v-if="visiblePages[0] > 2" class="page-item d-none d-sm-block">
-              <span class="page-link">...</span>
-            </li>
-
-            <!-- Visible page numbers -->
-            <li
-              v-for="page in visiblePages"
-              :key="page"
-              class="page-item d-none d-sm-block"
-              :class="{ active: page === propertyStore.pagination.currentPage }"
-              :aria-current="page === propertyStore.pagination.currentPage ? 'page' : undefined"
+            <!-- Pagination-->
+            <nav
+              v-if="propertyStore.pagination.totalPages > 1"
+              class="border-top pb-md-4 pt-4 mt-2"
+              aria-label="Pagination"
             >
-              <button
-                v-if="page === propertyStore.pagination.currentPage"
-                class="page-link"
-                disabled
-              >
-                {{ page }}
-                <span class="visually-hidden">(current)</span>
-              </button>
-              <button v-else class="page-link" @click="handlePageChange(page)">
-                {{ page }}
-              </button>
-            </li>
+              <ul class="pagination mb-1 justify-content-center">
+                <!-- Mobile page indicator -->
+                <li class="page-item d-sm-none">
+                  <span class="page-link page-link-static">
+                    {{ propertyStore.pagination.currentPage }} /
+                    {{ propertyStore.pagination.totalPages }}
+                  </span>
+                </li>
 
-            <!-- Ellipsis after visible pages -->
-            <li
-              v-if="visiblePages[visiblePages.length - 1] < propertyStore.pagination.totalPages - 1"
-              class="page-item d-none d-sm-block"
-            >
-              <span class="page-link">...</span>
-            </li>
+                <!-- Previous button -->
+                <li class="page-item" :class="{ disabled: !propertyStore.pagination.hasPrevPage }">
+                  <button
+                    class="page-link"
+                    @click="propertyStore.prevPage()"
+                    :disabled="!propertyStore.pagination.hasPrevPage"
+                    aria-label="Previous"
+                  >
+                    <i class="fi-chevron-left"></i>
+                  </button>
+                </li>
 
-            <!-- Last page (if not in visible range) -->
-            <li
-              v-if="visiblePages[visiblePages.length - 1] < propertyStore.pagination.totalPages"
-              class="page-item d-none d-sm-block"
-            >
-              <button
-                class="page-link"
-                @click="handlePageChange(propertyStore.pagination.totalPages)"
-              >
-                {{ propertyStore.pagination.totalPages }}
-              </button>
-            </li>
+                <!-- First page (if not in visible range) -->
+                <li v-if="visiblePages[0] > 1" class="page-item d-none d-sm-block">
+                  <button class="page-link" @click="handlePageChange(1)">1</button>
+                </li>
 
-            <!-- Next button -->
-            <li class="page-item" :class="{ disabled: !propertyStore.pagination.hasNextPage }">
-              <button
-                class="page-link"
-                @click="propertyStore.nextPage()"
-                :disabled="!propertyStore.pagination.hasNextPage"
-                aria-label="Next"
-              >
-                <i class="fi-chevron-right"></i>
-              </button>
-            </li>
-          </ul>
+                <!-- Ellipsis before visible pages -->
+                <li v-if="visiblePages[0] > 2" class="page-item d-none d-sm-block">
+                  <span class="page-link">...</span>
+                </li>
 
-          <!-- Results info -->
-          <div class="d-flex justify-content-center mt-3">
-            <small class="text-muted">
-              Mostrando
-              {{
-                (propertyStore.pagination.currentPage - 1) * propertyStore.pagination.pageSize + 1
-              }}
-              -
-              {{
-                Math.min(
-                  propertyStore.pagination.currentPage * propertyStore.pagination.pageSize,
-                  propertyStore.pagination.total
-                )
-              }}
-              de {{ propertyStore.pagination.total }} resultados
-            </small>
-          </div>
-        </nav>
+                <!-- Visible page numbers -->
+                <li
+                  v-for="page in visiblePages"
+                  :key="page"
+                  class="page-item d-none d-sm-block"
+                  :class="{ active: page === propertyStore.pagination.currentPage }"
+                  :aria-current="page === propertyStore.pagination.currentPage ? 'page' : undefined"
+                >
+                  <button
+                    v-if="page === propertyStore.pagination.currentPage"
+                    class="page-link"
+                    disabled
+                  >
+                    {{ page }}
+                    <span class="visually-hidden">(current)</span>
+                  </button>
+                  <button v-else class="page-link" @click="handlePageChange(page)">
+                    {{ page }}
+                  </button>
+                </li>
+
+                <!-- Ellipsis after visible pages -->
+                <li
+                  v-if="
+                    visiblePages[visiblePages.length - 1] < propertyStore.pagination.totalPages - 1
+                  "
+                  class="page-item d-none d-sm-block"
+                >
+                  <span class="page-link">...</span>
+                </li>
+
+                <!-- Last page (if not in visible range) -->
+                <li
+                  v-if="visiblePages[visiblePages.length - 1] < propertyStore.pagination.totalPages"
+                  class="page-item d-none d-sm-block"
+                >
+                  <button
+                    class="page-link"
+                    @click="handlePageChange(propertyStore.pagination.totalPages)"
+                  >
+                    {{ propertyStore.pagination.totalPages }}
+                  </button>
+                </li>
+
+                <!-- Next button -->
+                <li class="page-item" :class="{ disabled: !propertyStore.pagination.hasNextPage }">
+                  <button
+                    class="page-link"
+                    @click="propertyStore.nextPage()"
+                    :disabled="!propertyStore.pagination.hasNextPage"
+                    aria-label="Next"
+                  >
+                    <i class="fi-chevron-right"></i>
+                  </button>
+                </li>
+              </ul>
+
+              <!-- Results info -->
+              <div class="d-flex justify-content-center mt-3">
+                <small class="text-muted">
+                  Mostrando
+                  {{
+                    (propertyStore.pagination.currentPage - 1) * propertyStore.pagination.pageSize +
+                    1
+                  }}
+                  -
+                  {{
+                    Math.min(
+                      propertyStore.pagination.currentPage * propertyStore.pagination.pageSize,
+                      propertyStore.pagination.total
+                    )
+                  }}
+                  de {{ propertyStore.pagination.total }} resultados
+                </small>
+              </div>
+            </nav>
+          </section>
+
+
+
+          <!-- MAPA TAB-->
+           <Maps v-if="tabMap" :filters-params="filters"/>
+        </section>
       </div>
     </div>
   </div>

@@ -17,16 +17,49 @@ export const useGeoSearchStore = defineStore('geoSearch', () => {
   const propertiesCount = computed(() => properties.value.length)
 
   // Métodos
-  const searchPropertiesByLocation = async (latitude: number, longitude: number, searchRadius?: number) => {
+  const searchPropertiesByLocation = async (
+    latitude: number,
+    longitude: number,
+    searchRadius?: number,
+    filters?: {
+      categoryId?: number
+      countryId?: number | string
+      bathrooms?: number
+      parkings?: number
+      rooms?: number
+      min_price?: number
+      max_price?: number
+      stateId?: number
+    }
+  ) => {
     isLoading.value = true
     error.value = null
 
     try {
       const rad = searchRadius || radius.value
-      const response = await api.get(
-        `/public/properties/search-geo?latitude=${latitude}&longitude=${longitude}&radius=${rad}`
-      )
       
+      // Construir los parámetros de búsqueda
+      const params = new URLSearchParams({
+        latitude: latitude.toString(),
+        longitude: longitude.toString(),
+        radius: rad.toString()
+      })
+
+      // Agregar filtros opcionales si existen
+      if (filters) {
+        if (filters.categoryId) params.append("category", filters.categoryId.toString())
+        if (filters.countryId) params.append("country", filters.countryId.toString())
+        if (filters.bathrooms) params.append("bathrooms", filters.bathrooms.toString())
+        if (filters.parkings) params.append("parkings", filters.parkings.toString())
+        if (filters.rooms) params.append("rooms", filters.rooms.toString())
+        if (filters.min_price) params.append("min_price", filters.min_price.toString())
+        if (filters.max_price) params.append("max_price", filters.max_price.toString())
+        if (filters.stateId) params.append("state", filters.stateId.toString())
+      }
+
+      const response = await api.get(
+        `/public/properties/search-geo?${params.toString()}`
+      )
       
       properties.value = response.data
       mapCenter.value = { lat: latitude, lng: longitude }
@@ -40,7 +73,16 @@ export const useGeoSearchStore = defineStore('geoSearch', () => {
     }
   }
 
-  const searchByCurrentLocation = async () => {
+  const searchByCurrentLocation = async (filters?: {
+    categoryId?: number
+    countryId?: number | string
+    bathrooms?: number
+    parkings?: number
+    rooms?: number
+    min_price?: number
+    max_price?: number
+    stateId?: number
+  }) => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
         error.value = 'La geolocalización no está disponible'
@@ -51,7 +93,7 @@ export const useGeoSearchStore = defineStore('geoSearch', () => {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords
-          const result = await searchPropertiesByLocation(latitude, longitude)
+          const result = await searchPropertiesByLocation(latitude, longitude, undefined, filters)
           resolve(result)
         },
         (err) => {

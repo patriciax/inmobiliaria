@@ -2,7 +2,7 @@
   <div class="property-map-search">
     <div class="container-fluid px-0">
       <!-- Barra de búsqueda -->
-      <div class="search-bar bg-light p-4">
+      <!-- <div class="search-bar bg-light p-4">
         <div class="container">
           <div class="row align-items-center">
             <div class="col-md-8">
@@ -25,11 +25,11 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <div class="row g-0">
         <!-- Lista de propiedades -->
-        <div class="col-lg-6 property-list">
+        <!-- <div class="col-lg-6 property-list">
           <div class="properties-container p-4">
             <div v-if="geoStore.isLoading" class="text-center py-5">
               <div class="spinner-border text-primary" role="status">
@@ -68,7 +68,6 @@
                           :to="`/real-estate-single-v1/${property.id}`"
                         ></router-link>
                         
-                        <!-- Badge de estado -->
                         <div class="position-absolute start-0 top-0 pt-3 ps-3" style="z-index: 2;">
                           <span
                             v-if="property.status?.description"
@@ -81,7 +80,6 @@
                           </span>
                         </div>
                         
-                        <!-- Imagen -->
                         <img 
                           :src="property.images[0]?.url?.thumbnail || '/placeholder.jpg'" 
                           :alt="property.title" 
@@ -112,7 +110,6 @@
                           {{ formatPrice(property.price, property.currency?.abbreviation) }}
                         </div>
 
-                        <!-- Características -->
                         <div class="d-flex align-items-center flex-wrap">
                           <span class="d-inline-block me-3 fs-sm">
                             {{ property.rooms }}<i class="fi-bed ms-1 mt-n1 fs-lg text-muted"></i>
@@ -137,10 +134,10 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <!-- Mapa -->
-        <div class="col-lg-6 map-container">
+        <div class="col-lg-12 map-container">
           <div v-if="mapReady" style="height: calc(100vh - 200px);">
             <LMap
               ref="mapRef"
@@ -198,6 +195,11 @@ import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
+interface Props {
+  filtersParams: Record<any, any>
+}
+
+const props = defineProps<Props>()
 // Solución para los iconos de Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -224,7 +226,8 @@ onMounted(async () => {
   await nextTick()
   mapReady.value = true
   // Búsqueda inicial con ubicación por defecto
-  await geoStore.searchPropertiesByLocation(geoStore.mapCenter.lat, geoStore.mapCenter.lng)
+  await geoStore.searchPropertiesByLocation(geoStore.mapCenter.lat, geoStore.mapCenter.lng, searchRadius.value, props.filtersParams)
+  console.log('Propiedades cargadas:', props.filtersParams)
 })
 
 const onMapReady = () => {

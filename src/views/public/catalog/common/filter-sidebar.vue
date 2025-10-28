@@ -27,6 +27,12 @@ const selectedCountryId = ref('')
 const filterStore = useFiltersStore()
 const idTYpeProperty = ref<number | undefined>(undefined)
 const selectedStateId = ref('')
+
+const emit = defineEmits(['search'])
+
+const emitSearch = (filter?: any) => {
+  emit('search', filter)
+}
 onMounted(async () => {
   await filterStore.getCountries()
   await filterStore.getTypeProperty()
@@ -45,6 +51,8 @@ const filterByCountry = async(countryId: number | undefined | string, countryNam
   console.log('Filtering by country ID:', id)
  await propertyStore.getPropertiesPublic(1, 10, 1, id)
  await filterStore.getStates(id)
+
+ emitSearch()
 }
 
 const filterByState = async(stateId: number | undefined | string) => {
@@ -56,6 +64,8 @@ const filterByState = async(stateId: number | undefined | string) => {
   }
   console.log('Filtering by state ID:', id)
   await propertyStore.getPropertiesPublic(1, 10, 1, selectedCountryId.value, undefined, undefined, undefined, undefined, undefined, id)
+
+  emitSearch()
 }
 
 const filterByTypeProperty = (typePropertyId: number | string) => {
@@ -67,6 +77,8 @@ const filterByTypeProperty = (typePropertyId: number | string) => {
   idTYpeProperty.value = id
   console.log('Filtering by type property ID:', id)
   propertyStore.getPropertiesPublic(1, 10, id, selectedCountryId.value)
+
+  emitSearch(typePropertyId)
 }
 
 // Variables reactivas
@@ -88,7 +100,7 @@ const getBathrooms = async () => {
       selectedCountryId.value,
       selectedBathrooms.value
     )
-
+    emitSearch( selectedBathrooms.value)
     console.log('Datos recibidos:', response)
   } catch (error) {
     console.error('Error al llamar el servicio:', error)
@@ -107,6 +119,7 @@ const onBedroomsChange = async () => {
       selectedParking.value,
       selectedBedrooms.value
     )
+    emitSearch( selectedBedrooms.value)
   } catch (error) {
     console.error('Error al llamar el servicio:', error)
   }
@@ -127,6 +140,7 @@ const onParkingChange = async () => {
       selectedParking.value
     )
     console.log('Datos recibidos:', response)
+    emitSearch( selectedParking.value)
   } catch (error) {
     console.error('Error al llamar el servicio:', error)
   }
@@ -146,6 +160,7 @@ const filterByPrice = async () => {
       pricePerMonth.value[0],
       pricePerMonth.value[1]
     )
+    emitSearch( pricePerMonth.value)
     console.log('Datos recibidos:', response)
   } catch (error) {
     console.error('Error al llamar el servicio:', error)
@@ -161,11 +176,14 @@ const searchProperties = async () => {
       10,
       search.value
     )
+    emitSearch( search.value)
     console.log('Datos recibidos:', response)
   } catch (error) {
     console.error('Error al buscar propiedades:', error)
   }
 }
+
+
 </script>
 
 <template>
