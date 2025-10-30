@@ -138,20 +138,20 @@
 
         <!-- Mapa -->
         <div class="col-lg-12 map-container">
-          <div v-if="mapReady" style="height: calc(100vh - 200px);">
+          <div v-if="mapReady" style="height: calc(100vh - 100px)">
             <LMap
               ref="mapRef"
               :zoom="mapZoom"
               :center="[geoStore.mapCenter.lat, geoStore.mapCenter.lng]"
               :use-global-leaflet="false"
-              style="height: 100%; width: 100%; z-index: 1;"
+              style="height: 100%; width: 100%; z-index: 1"
               @ready="onMapReady"
             >
               <LTileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
               />
-              
+
               <!-- Marcadores individuales -->
               <template v-for="property in visibleProperties" :key="property.id">
                 <LMarker
@@ -161,23 +161,79 @@
                   @click="onMarkerClick(property)"
                 >
                   <LPopup>
-                    <div class="popup-content" style="min-width: 200px;">
-                      <h6 class="mb-1">{{ property.title }}</h6>
+                    <div class="popup-content" style="min-width: 200px">
+                      <div class="card shadow-sm card-hover border-0 h-100">
+                        <div class="tns-carousel-wrapper card-img-top card-img-hover">
+                          <router-link
+                            class="img-overlay"
+                            :to="`/real-estate-single-v1/${property.id}`"
+                          ></router-link>
+                        </div>
+                        <div class="card-body position-relative pb-3">
+                          <h4 class="mb-1 fs-xs fw-normal text-uppercase text-primary">
+                            {{ property.type.name }}
+                          </h4>
+
+                          <h3 class="h6 mb-2 fs-base">
+                            <router-link
+                              class="nav-link stretched-link"
+                              :to="`/real-estate-single-v1/${property.id}`"
+                              >{{ property.title }}</router-link
+                            >
+                          </h3>
+                          <p class="mb-1 text-muted small">
+                            {{ property.location || 'Ubicación  no disponible' }}
+                          </p>
+
+                          <img
+                            v-if="property.images && property.images.length > 0"
+                            :src="property.images[0]?.url?.thumbnail || '/placeholder.jpg'"
+                            :alt="property.title"
+                            style="height: 100px; width: 100%; object-fit: cover ; margin-bottom: 10px;"
+                            referrerPolicy="no-referrer"
+                          />
+
+                          <!-- <p class="mb-2 fs-sm text-muted">{{ property.location }}</p> -->
+                          <div class="fw-bold">
+                                    <i class="fi-cash mt-n1 me-2 lead align-middle opacity-70"></i>{{ formatPrice(property.price, property.currency?.abbreviation) || property.price }}
+                                </div>
+                        </div>
+                        <div
+                          class="card-footer d-flex align-items-center justify-content-center mx-3 pt-3 text-nowrap"
+                        >
+                        <span v-if="property.rooms" class="d-inline-block mx-1 px-2 fs-sm">{{ property.rooms }}<i class="fi-bed ms-1 mt-n1 fs-lg text-muted"></i></span>
+                                <span v-if="property.bathrooms" class="d-inline-block mx-1 px-2 fs-sm">{{ property.bathrooms }}<i class="fi-bath ms-1 mt-n1 fs-lg text-muted"></i></span>
+                                <span v-if="property.parkings" class="d-inline-block mx-1 px-2 fs-sm">{{ property.parkings }}<i class="fi-car ms-1 mt-n1 fs-lg text-muted"></i></span>
+                          <!-- <i class="fi-cash mt-n1 me-2 lead align-middle opacity-70"></i
+                          >{{ property.price }} -->
+                        </div>
+                      </div>
+                      <!-- <h6 class="mb-1">{{ property.title }}</h6>
                       <p class="mb-1 text-muted small">{{ formatLocation(property) }}</p>
                       <p class="fw-bold mb-2">{{ formatPrice(property.price, property.currency?.abbreviation) }}</p>
+                      <img 
+                        :src="property.images[0]?.url?.thumbnail || '/placeholder.jpg'" 
+                        :alt="property.title" 
+                        style="height: 100px; width: 100%; object-fit: cover; margin-bottom: 10px;" 
+                        referrerPolicy="no-referrer"
+                      />
                       <router-link 
                         :to="`/real-estate-single-v1/${property.id}`"
                         class="btn btn-sm btn-primary"
                       >
                         Ver detalles
-                      </router-link>
+                      </router-link> -->
                     </div>
                   </LPopup>
                 </LMarker>
               </template>
             </LMap>
           </div>
-          <div v-else class="d-flex align-items-center justify-content-center" style="height: calc(100vh - 200px);">
+          <div
+            v-else
+            class="d-flex align-items-center justify-content-center"
+            style="height: calc(100vh - 200px)"
+          >
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Cargando mapa...</span>
             </div>
@@ -217,8 +273,7 @@ const mapZoom = ref(12)
 // Filtrar propiedades con coordenadas válidas
 const visibleProperties = computed(() => {
   return geoStore.properties.filter(
-    p => p.latitude && p.longitude && 
-    p.latitude !== 0 && p.longitude !== 0
+    (p) => p.latitude && p.longitude && p.latitude !== 0 && p.longitude !== 0
   )
 })
 
@@ -226,7 +281,12 @@ onMounted(async () => {
   await nextTick()
   mapReady.value = true
   // Búsqueda inicial con ubicación por defecto
-  await geoStore.searchPropertiesByLocation(geoStore.mapCenter.lat, geoStore.mapCenter.lng, searchRadius.value, props.filtersParams)
+  await geoStore.searchPropertiesByLocation(
+    geoStore.mapCenter.lat,
+    geoStore.mapCenter.lng,
+    searchRadius.value,
+    props.filtersParams
+  )
   console.log('Propiedades cargadas:', props.filtersParams)
 })
 
@@ -240,12 +300,10 @@ const onMapReady = () => {
 
 const fitMapBounds = () => {
   if (!mapRef.value || visibleProperties.value.length === 0) return
-  
+
   const map = mapRef.value.leafletObject as L.Map
-  const bounds = L.latLngBounds(
-    visibleProperties.value.map(p => [p.latitude, p.longitude])
-  )
-  
+  const bounds = L.latLngBounds(visibleProperties.value.map((p) => [p.latitude, p.longitude]))
+
   map.fitBounds(bounds, { padding: [50, 50] })
 }
 
@@ -258,7 +316,7 @@ const getLatLng = (property: any) => {
 const getCustomIcon = (property: any) => {
   const price = formatPrice(property.price, property.currency?.abbreviation)
   const isSelected = geoStore.selectedProperty?.id === property.id
-  
+
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -291,15 +349,18 @@ watch(visibleProperties, () => {
   })
 })
 
-watch(() => geoStore.selectedProperty, (newVal) => {
-  if (newVal && mapRef.value) {
-    const map = mapRef.value.leafletObject as L.Map
-    map.setView([newVal.latitude, newVal.longitude], 16, {
-      animate: true,
-      duration: 0.5
-    })
+watch(
+  () => geoStore.selectedProperty,
+  (newVal) => {
+    if (newVal && mapRef.value) {
+      const map = mapRef.value.leafletObject as L.Map
+      map.setView([newVal.latitude, newVal.longitude], 16, {
+        animate: true,
+        duration: 0.5
+      })
+    }
   }
-})
+)
 
 const formatPrice = (price: number, currency?: string) => {
   if (!price) return 'Precio no disponible'
@@ -320,10 +381,10 @@ const formatLocation = (property: any) => {
 
 const getBadgeColor = (status: string) => {
   const colors: Record<string, string> = {
-    'Destacado': 'warning',
-    'Renovado': 'success',
-    'Nuevo': 'info',
-    'Disponible': 'primary',
+    Destacado: 'warning',
+    Renovado: 'success',
+    Nuevo: 'info',
+    Disponible: 'primary',
     'En Venta': 'primary',
     'En Arriendo': 'info'
   }
@@ -378,10 +439,10 @@ const searchCurrentLocation = async () => {
     const position = await new Promise<GeolocationPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject)
     })
-    
+
     const { latitude, longitude } = position.coords
     await geoStore.searchPropertiesByLocation(latitude, longitude, searchRadius.value)
-    
+
     if (mapRef.value) {
       const map = mapRef.value.leafletObject as L.Map
       map.setView([latitude, longitude], 13, { animate: true })
@@ -412,7 +473,7 @@ const searchCurrentLocation = async () => {
 }
 
 .card-hover:hover {
-  transform: translateY(-5px);
+  /* transform: translateY(-5px); */
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
 
@@ -438,7 +499,7 @@ const searchCurrentLocation = async () => {
 
 :deep(.marker-price:hover) {
   transform: scale(1.05) !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 :deep(.marker-price.selected) {
@@ -446,7 +507,8 @@ const searchCurrentLocation = async () => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1.1);
   }
   50% {

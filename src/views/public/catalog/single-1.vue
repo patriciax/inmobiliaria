@@ -4,6 +4,8 @@ import Breadcrumb from '@/components/Breadcrumb.vue'
 import Lightgallery from 'lightgallery/vue'
 import { LMap, LTileLayer, LMarker, LPopup } from '@vue-leaflet/vue-leaflet'
 import type { Map as LeafletMap } from 'leaflet'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import Form from '../../public/form.vue'
 
 import 'leaflet/dist/leaflet.css'
 import lgThumbnail from 'lightgallery/plugins/thumbnail'
@@ -11,7 +13,6 @@ import lgZoom from 'lightgallery/plugins/zoom'
 import 'lightgallery/css/lg-thumbnail.css'
 // Importaciones necesarias para Leaflet
 import L from 'leaflet'
-import FormContact from '@/views/public/form.vue'
 // Solución para los iconos de Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -26,6 +27,7 @@ import { usePropertyStore } from '@/stores/propertys'
 import router from '@/router'
 import { Toast } from 'bootstrap'
 import { toast } from 'vue3-toastify'
+import { Navigation, Pagination, Thumbs, Zoom } from 'swiper/modules'
 
 const propertyStore = usePropertyStore()
 const mapRef = ref<InstanceType<typeof LMap> | null>(null)
@@ -109,13 +111,13 @@ const publishedImages = computed(() => {
 // Método para asignar las clases CSS del grid basado en el índice
 const getGridClass = (index: number) => {
   const totalImages = publishedImages.value.length
-  
+
   // Si hay 6 o menos imágenes, usar el patrón original
   if (totalImages <= 6) {
     const classes = ['div1', 'div2', 'div3', 'div4', 'div5', 'div6']
     return classes[index] || 'div1'
   }
-  
+
   // Para más de 6 imágenes, usar un patrón repetitivo más compacto
   const pattern = index % 6
   switch (pattern) {
@@ -271,19 +273,36 @@ const copyLinkToClipboard = () => {
   navigator.clipboard
     .writeText(url)
     .then(() => {
-      toast.success('¡Enlace copiado al portapapeles!', {
-        
-      })
+      toast.success('¡Enlace copiado al portapapeles!', {})
     })
     .catch((err) => {
       console.error('Error al copiar el enlace: ', err)
     })
 }
+
+// Configuración de Swiper
+const swiperModules = [Navigation, Pagination, Thumbs, Zoom]
+const thumbsSwiper = ref<any | null>(null)
+
+const setThumbsSwiper = (swiper: any) => {
+  thumbsSwiper.value = swiper
+}
+
+const formatPrice = (price: number, currency?: string) => {
+  if (!price) return 'Precio no disponible'
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: currency || 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(price)
+}
+
 </script>
 
 <template>
   <!-- Page header-->
-  <section class="container pt-5 mt-5">
+  <section class="container pt-5 mt-5" style="position: relative;">
     <!-- Breadcrumb-->
     <Breadcrumb :data="breadcrumbData" />
 
@@ -335,24 +354,22 @@ const copyLinkToClipboard = () => {
       <section>
         <div class="mb-2 border-bottom">
           <h2 class="h3">
-            ${{ propertyStore?.dataProperty?.price
-            }}<span class="d-inline-block ms-1 fs-base fw-normal text-body"></span>
+             {{  formatPrice(propertyStore?.dataProperty?.price ?? 0)  }}<span class="d-inline-block ms-1 fs-base fw-normal text-body"></span>
           </h2>
           <p class="text-end">{{ propertyStore?.dataProperty?.visits }} Vistas</p>
         </div>
 
         <div class="text-nowrap text-end">
-                <div>
-        </div>
+          <div></div>
 
           <span
-           class="badge bg-info me-2 mb-3"
+            class="badge bg-info me-2 mb-3"
             type="button"
             data-bs-toggle="tooltip"
             title="Copiar enlace"
             @click="copyLinkToClipboard"
           >
-          <span class="">Compartir enlace</span>
+            <span class="">Compartir enlace</span>
 
             <!-- {{ propertyStore?.dataProperty?.favorite }} -->
           </span>
@@ -381,15 +398,68 @@ const copyLinkToClipboard = () => {
     </section>
   </section>
 
-  <!-- Gallery-->
-  <div class="container overflow-auto mb-4 pb-3">
-    <div class="tabs-container">
-      <!-- Contenido de las pestañas -->
-      <div class="tabs-content">
-        <div v-show="activeTab === 'fotos'" class="tab-panel">
-          <div class="row g-2 g-md-3 gallery" style="min-width: 30rem">
-            <div class="parent">
-              <lightgallery
+  <!-- Post content-->
+  <section class="container mb-5 pb-1 " >
+    <div class="row">
+      <div class="col-md-9 mb-md-0 mb-4">
+        <!-- Gallery-->
+        <div class="container overflow-auto mb-4 pb-3">
+          <div class="tabs-container">
+            <!-- Contenido de las pestañas -->
+            <div class="tabs-content">
+              <div v-show="activeTab === 'fotos'" class="tab-panel">
+                <div class="row g-2 g-md-3 gallery" style="min-width: 30rem">
+                  <div class="parent">
+                    <div v-if="publishedImages.length > 0" class="swiper-container">
+                      <!-- Carrusel principal -->
+                      <Swiper
+                        :modules="swiperModules"
+                        :spaceBetween="10"
+                        :navigation="true"
+                        :thumbs="{ swiper: thumbsSwiper }"
+                        :zoom="true"
+                        :loop="true"
+                        class="main-swiper"
+                      >
+                        <SwiperSlide v-for="(image, index) in publishedImages" :key="image.id">
+                          <div class="swiper-zoom-container">
+                            <img
+                              :src="image.url.full || image.url.medium"
+                              :alt="image.description || `Imagen ${index + 1}`"
+                              loading="lazy"
+                            />
+                          </div>
+                        </SwiperSlide>
+                      </Swiper>
+
+                      <!-- Carrusel de miniaturas -->
+                      <Swiper
+                        @swiper="setThumbsSwiper"
+                        :modules="swiperModules"
+                        :spaceBetween="10"
+                        :slidesPerView="4"
+                        :breakpoints="{
+                          640: { slidesPerView: 5 },
+                          768: { slidesPerView: 6 },
+                          1024: { slidesPerView: 8 }
+                        }"
+                        :freeMode="true"
+                        :watchSlidesProgress="true"
+                        class="thumbs-swiper"
+                      >
+                        <SwiperSlide
+                          v-for="(image, index) in publishedImages"
+                          :key="`thumb-${image.id}`"
+                        >
+                          <img
+                            :src="image.url.medium || image.url.full"
+                            :alt="`Miniatura ${index + 1}`"
+                            loading="lazy"
+                          />
+                        </SwiperSlide>
+                      </Swiper>
+                    </div>
+                    <!-- <lightgallery
                 :style="{
                   gridTemplateRows:
                     publishedImages.length <= 3
@@ -416,158 +486,154 @@ const copyLinkToClipboard = () => {
                     loading="lazy"
                   />
                 </a>
-              </lightgallery>
+              </lightgallery> -->
 
-              <div v-else class="placeholder-content">
-                <p>No hay imágenes disponibles para esta propiedad</p>
+                    <div v-else class="placeholder-content">
+                      <p>No hay imágenes disponibles para esta propiedad</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-show="activeTab === 'video'" class="tab-panel">
+                <div class="placeholder-content">
+                  <!-- Para YouTube -->
+                  <iframe
+                    v-if="
+                      propertyStore?.dataProperty?.details?.video_url &&
+                      isYouTubeUrl(propertyStore.dataProperty.details.video_url)
+                    "
+                    :src="getYouTubeEmbedUrl(propertyStore.dataProperty.details.video_url)"
+                    width="100%"
+                    height="400"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    class="w-100"
+                  ></iframe>
+
+                  <!-- Para Vimeo -->
+                  <iframe
+                    v-else-if="
+                      propertyStore?.dataProperty?.details?.video_url &&
+                      isVimeoUrl(propertyStore.dataProperty.details.video_url)
+                    "
+                    :src="getVimeoEmbedUrl(propertyStore.dataProperty.details.video_url)"
+                    width="100%"
+                    height="400"
+                    frameborder="0"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowfullscreen
+                    class="w-100"
+                  ></iframe>
+
+                  <!-- Para archivos de video directo (MP4, WebM, etc.) -->
+                  <video
+                    v-else-if="
+                      propertyStore?.dataProperty?.details?.video_url &&
+                      isDirectVideoUrl(propertyStore.dataProperty.details.video_url)
+                    "
+                    :src="propertyStore.dataProperty.details.video_url"
+                    controls
+                    class="w-100"
+                    style="height: 400px"
+                  ></video>
+
+                  <!-- Para URLs no reconocidas, intentar como iframe genérico -->
+                  <iframe
+                    v-else-if="propertyStore?.dataProperty?.details?.video_url"
+                    :src="propertyStore.dataProperty.details.video_url"
+                    width="100%"
+                    height="400"
+                    frameborder="0"
+                    class="w-100"
+                  ></iframe>
+
+                  <p v-else>No hay video disponible para esta propiedad</p>
+                </div>
+              </div>
+
+              <div v-show="activeTab === 'tour'" class="tab-panel">
+                <div class="placeholder-content">
+                  <div
+                    v-if="propertyStore?.dataProperty?.details?.view360_url"
+                    :href="propertyStore?.dataProperty?.details?.view360_url"
+                  >
+                    Tour virtual interactivo
+                  </div>
+                </div>
+              </div>
+
+              <div v-show="activeTab === 'mapa'" class="tab-panel">
+                <h3>Ubicación en Mapa</h3>
+                <div class="map-container" v-if="mapReady && propertyStore?.dataProperty">
+                  <LMap
+                    ref="mapRef"
+                    :zoom="mapZoom"
+                    :center="mapCenter"
+                    :use-global-leaflet="false"
+                    style="height: 400px; width: 100%; z-index: 1"
+                    @ready="onMapReady"
+                  >
+                    <LTileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                    />
+                    <LMarker :lat-lng="mapCenter" v-if="mapCenter[0] !== 0 && mapCenter[1] !== 0">
+                      <LPopup>
+                        <div>
+                          <strong>{{ propertyStore.dataProperty?.title || 'Propiedad' }}</strong
+                          ><br />
+                          <span v-if="propertyStore.dataProperty?.location">{{
+                            propertyStore.dataProperty.location
+                          }}</span>
+                        </div>
+                      </LPopup>
+                    </LMarker>
+                  </LMap>
+                </div>
+                <div v-else class="placeholder-content">
+                  <p>No hay coordenadas disponibles para mostrar el mapa</p>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div v-show="activeTab === 'video'" class="tab-panel">
-          <div class="placeholder-content">
-            <!-- Para YouTube -->
-            <iframe
-              v-if="
-                propertyStore?.dataProperty?.details?.video_url &&
-                isYouTubeUrl(propertyStore.dataProperty.details.video_url)
-              "
-              :src="getYouTubeEmbedUrl(propertyStore.dataProperty.details.video_url)"
-              width="100%"
-              height="400"
-              frameborder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen
-              class="w-100"
-            ></iframe>
+            <div class="tabs-header mt-3">
+              <template v-for="tab in tabs" :key="tab.id">
+                <a
+                  :href="propertyStore?.dataProperty?.details?.view360_url"
+                  target="_blank"
+                  v-if="tab.id === 'tour' && propertyStore?.dataProperty?.details?.view360_url"
+                  class="tab-button"
+                >
+                  {{ tab.label }}
+                </a>
 
-            <!-- Para Vimeo -->
-            <iframe
-              v-else-if="
-                propertyStore?.dataProperty?.details?.video_url &&
-                isVimeoUrl(propertyStore.dataProperty.details.video_url)
-              "
-              :src="getVimeoEmbedUrl(propertyStore.dataProperty.details.video_url)"
-              width="100%"
-              height="400"
-              frameborder="0"
-              allow="autoplay; fullscreen; picture-in-picture"
-              allowfullscreen
-              class="w-100"
-            ></iframe>
-
-            <!-- Para archivos de video directo (MP4, WebM, etc.) -->
-            <video
-              v-else-if="
-                propertyStore?.dataProperty?.details?.video_url &&
-                isDirectVideoUrl(propertyStore.dataProperty.details.video_url)
-              "
-              :src="propertyStore.dataProperty.details.video_url"
-              controls
-              class="w-100"
-              style="height: 400px"
-            ></video>
-
-            <!-- Para URLs no reconocidas, intentar como iframe genérico -->
-            <iframe
-              v-else-if="propertyStore?.dataProperty?.details?.video_url"
-              :src="propertyStore.dataProperty.details.video_url"
-              width="100%"
-              height="400"
-              frameborder="0"
-              class="w-100"
-            ></iframe>
-
-            <p v-else>No hay video disponible para esta propiedad</p>
-          </div>
-        </div>
-
-        <div v-show="activeTab === 'tour'" class="tab-panel">
-          <div class="placeholder-content">
-            <div
-              v-if="propertyStore?.dataProperty?.details?.view360_url"
-              :href="propertyStore?.dataProperty?.details?.view360_url"
-            >
-              Tour virtual interactivo
+                <a
+                  :href="propertyStore?.dataProperty?.details?.street_view_url"
+                  target="_blank"
+                  v-else-if="
+                    tab.id === 'streetview' && propertyStore?.dataProperty?.details?.street_view_url
+                  "
+                  class="tab-button"
+                >
+                  {{ tab.label }}
+                </a>
+                <button
+                  @click="activeTab = tab.id"
+                  :class="{ active: activeTab === tab.id }"
+                  class="tab-button"
+                  v-show="tab.id !== 'tour' && tab.id !== 'streetview'"
+                >
+                  {{ tab.label }}
+                </button>
+              </template>
             </div>
           </div>
         </div>
 
-        <div v-show="activeTab === 'mapa'" class="tab-panel">
-          <h3>Ubicación en Mapa</h3>
-          <div class="map-container" v-if="mapReady && propertyStore?.dataProperty">
-            <LMap
-              ref="mapRef"
-              :zoom="mapZoom"
-              :center="mapCenter"
-              :use-global-leaflet="false"
-              style="height: 400px; width: 100%; z-index: 1"
-              @ready="onMapReady"
-            >
-              <LTileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
-              />
-              <LMarker :lat-lng="mapCenter" v-if="mapCenter[0] !== 0 && mapCenter[1] !== 0">
-                <LPopup>
-                  <div>
-                    <strong>{{ propertyStore.dataProperty?.title || 'Propiedad' }}</strong
-                    ><br />
-                    <span v-if="propertyStore.dataProperty?.location">{{
-                      propertyStore.dataProperty.location
-                    }}</span>
-                  </div>
-                </LPopup>
-              </LMarker>
-            </LMap>
-          </div>
-          <div v-else class="placeholder-content">
-            <p>No hay coordenadas disponibles para mostrar el mapa</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="tabs-header mt-3">
-        <template v-for="tab in tabs" :key="tab.id">
-          <a
-            :href="propertyStore?.dataProperty?.details?.view360_url"
-            target="_blank"
-            v-if="tab.id === 'tour' && propertyStore?.dataProperty?.details?.view360_url"
-            class="tab-button"
-          >
-            {{ tab.label }}
-          </a>
-
-          <a
-            :href="propertyStore?.dataProperty?.details?.street_view_url"
-            target="_blank"
-            v-else-if="
-              tab.id === 'streetview' && propertyStore?.dataProperty?.details?.street_view_url
-            "
-            class="tab-button"
-          >
-            {{ tab.label }}
-          </a>
-          <button
-            @click="activeTab = tab.id"
-            :class="{ active: activeTab === tab.id }"
-            class="tab-button"
-            v-show="tab.id !== 'tour' && tab.id !== 'streetview'"
-          >
-            {{ tab.label }}
-          </button>
-        </template>
-      </div>
-    </div>
-  </div>
-
-  <!-- Post content-->
-  <section class="container mb-5 pb-1">
-    <div class="row">
-      <div class="col-md-7 mb-md-0 mb-4">
-        <span class="badge bg-success me-2 mb-3">Verified</span
-        ><span class="badge bg-info me-2 mb-3">New</span>
+        <span class="badge bg-success me-2 mb-3">Verificado</span
+        ><span class="badge bg-info me-2 mb-3">Nuevo</span>
 
         <!-- Overview-->
         <div class="mb-4 pb-md-3">
@@ -697,70 +763,136 @@ const copyLinkToClipboard = () => {
       </div>
 
       <!-- Sidebar-->
-      <aside class="col-lg-4 col-md-5 ms-lg-auto pb-1">
-        <!-- Contact card-->
-        <div class="card shadow-sm mb-4">
-          <div class="card-body">
-            <div class="d-flex align-items-start justify-content-between flex-column flex-sm-row">
-              <div class="d-flex align-items-start gap-3">
-                <img
-                  class="rounded-circle mb-2"
-                  :src="propertyStore?.dataProperty?.profile?.user?.photo_url"
-                  width="60"
-                  alt="Avatar"
-                  loading="lazy"
-                  crossorigin="anonymous"
-                  referrerPolicy="no-referrer"
-                  v-if="propertyStore?.dataProperty?.profile?.user?.photo_url"
-                />
-                <img
-                  class="rounded-circle mb-2"
-                  src="@/assets/img/avatars/14.png"
-                  width="60"
-                  alt="Avatar Placeholder"
-                  loading="lazy"
-                  v-else
-                />
-                <div>
-                  <router-link
-                    class="text-decoration-none d-flex perfil-header flex-column"
-                    :to="`/tarjeta-digital/${propertyStore?.dataProperty?.profile?.id}`"
-                  >
-                    <h5 class="mb-1">
-                      {{ propertyStore?.dataProperty?.profile?.user?.name }}
-                      {{ propertyStore?.dataProperty?.profile?.user?.last_name }}
-                    </h5>
-                    <p class="text-body">
-                      {{ propertyStore?.dataProperty?.profile?.role?.description }}
-                    </p>
-                  </router-link>
-                  <ul class="list-unstyled border-bottom mb-4 d-flex gap-3">
-                    <li v-if="propertyStore?.dataProperty?.profile?.user?.phone_number">
-                      <a
-                        class="nav-link fw-normal p-0"
-                        href="https://wa.me/{{ propertyStore?.dataProperty?.profile?.user?.phone_number }}"
-                        target="_blank"
-                        ><i class="fi-phone mt-n1 me-2 align-middle opacity-60"></i
-                      ></a>
-                    </li>
-                    <li v-if="propertyStore?.dataProperty?.profile?.user?.email">
-                      <a class="nav-link fw-normal p-0" href="mailto:floyd_miles@email.com"
-                        ><i class="fi-mail mt-n1 me-2 align-middle opacity-60"></i
-                      ></a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <!-- Contact form-->
-            <FormContact
-              :agent-id="propertyStore?.dataProperty?.profile?.id"
-              :property-id="propertyStore?.dataProperty?.id"
+  
+      <aside class="col-lg-3 col-md-3 ms-lg-auto pb-1 fixed-sidebar">
+      <!-- Contact card -->
+      <div class="card shadow-sm mb-4 text-center">
+        <div class="card-body p-4">
+          <!-- Avatar -->
+          <div class="mb-3">
+            <img
+              class="rounded-circle"
+              :src="propertyStore?.dataProperty?.profile?.user?.photo_url"
+              width="100"
+              height="100"
+              alt="Avatar"
+              loading="lazy"
+              crossorigin="anonymous"
+              referrerPolicy="no-referrer"
+              v-if="propertyStore?.dataProperty?.profile?.user?.photo_url"
+              style="object-fit: cover;"
+            />
+            <img
+              class="rounded-circle"
+              src="@/assets/img/avatars/14.png"
+              width="100"
+              height="100"
+              alt="Avatar Placeholder"
+              loading="lazy"
+              v-else
+              style="object-fit: cover;"
             />
           </div>
+  
+          <!-- Name -->
+          <router-link
+            class="text-decoration-none"
+            :to="`/tarjeta-digital/${propertyStore?.dataProperty?.profile?.id}`"
+          >
+            <h5 class="mb-1 text-dark fw-bold">
+              {{ propertyStore?.dataProperty?.profile?.user?.name }}
+              {{ propertyStore?.dataProperty?.profile?.user?.last_name }}
+            </h5>
+          </router-link>
+          
+          <!-- Role -->
+          <p class="text-muted small mb-3">
+            {{ propertyStore?.dataProperty?.profile?.role?.description }}
+          </p>
+  
+          <!-- Social Icons -->
+          <div class="d-flex justify-content-center gap-2 mb-3">
+            <a 
+              v-if="propertyStore?.dataProperty?.profile?.user?.phone_number"
+              :href="`https://wa.me/${propertyStore?.dataProperty?.profile?.user?.phone_number}`"
+              target="_blank"
+              class="btn btn-sm btn-outline-secondary rounded-circle p-2"
+              style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"
+            >
+            <i class="fi-whatsapp"></i>
+
+            </a>
+            <a 
+              v-if="propertyStore?.dataProperty?.profile?.user?.email"
+              :href="`mailto:${propertyStore?.dataProperty?.profile?.user?.email}`"
+              class="btn btn-sm btn-outline-secondary rounded-circle p-2"
+              style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"
+            >
+              <i class="fi-mail"></i>
+            </a>
+         
+          </div>
+  
+          <!-- Service Tags (opcional - adapta según tus necesidades) -->
+          <!-- <div class="mb-3">
+            <span class="badge bg-light text-dark me-2 mb-2">Quiero Arrendar</span>
+            <span class="badge bg-light text-dark me-2 mb-2">Quiero Comprar</span>
+            <span class="badge bg-light text-dark mb-2">Quiero Vender/Arrendar</span>
+          </div> -->
+  
+          <!-- Contact Button -->
+          <button 
+            class="btn btn-dark w-100 mb-3"
+            type="button" 
+          data-bs-toggle="modal" 
+          data-bs-target="#message-modal"
+          >
+          <i class="fi-message me-2"></i>Contactar Agente
+          </button>
+
+  
+  
+          <!-- About Section -->
+          <div class="text-start">
+            <h6 class="fw-bold mb-2">Sobre Mí</h6>
+            <p class="text-muted small mb-0" v-if="propertyStore?.dataProperty?.profile?.role?.description">
+              {{ propertyStore?.dataProperty?.profile?.role?.description }} 
+            </p>
+          </div>
         </div>
-      </aside>
+      </div>
+  
+      <!-- Contact Modal -->
+      <!-- <div 
+        class="modal fade" 
+        id="contactModal" 
+        tabindex="-1" 
+        aria-labelledby="contactModalLabel" 
+        aria-hidden="true"
+        ref="contactModal"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header border-0">
+              <h5 class="modal-title" id="contactModalLabel">Contactar Agente</h5>
+              <button 
+                type="button" 
+                class="btn-close" 
+                data-bs-dismiss="modal" 
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <FormContact
+                :agent-id="propertyStore?.dataProperty?.profile?.id"
+                :property-id="propertyStore?.dataProperty?.id"
+                @success="closeContactModal"
+              />
+            </div>
+          </div>
+        </div>
+      </div> -->
+    </aside>
     </div>
   </section>
 
@@ -838,6 +970,21 @@ const copyLinkToClipboard = () => {
             </button>
           </form> -->
         </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- Message modal-->
+    <div class="modal fade" id="message-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="fs-base modal-title">Mensaje para agente inmobiliario</h3>
+          <button class="btn-close ms-0" type="button" data-bs-dismiss="modal"></button>
+        </div>
+        <form class="modal-body needs-validation" novalidate>
+          <Form   :agent-id="propertyStore?.dataProperty?.profile?.id"  :property-id="propertyStore?.dataProperty?.id"/>
+        </form>
       </div>
     </div>
   </div>
@@ -968,5 +1115,11 @@ const copyLinkToClipboard = () => {
 
 .perfil-header {
   /* gap: 15px; */
+}
+
+.fixed-sidebar {
+  position: sticky;
+  top: 100px;
+  height: calc(100vh - 100px);
 }
 </style>
